@@ -8,8 +8,10 @@ import sys
 import os
 import time
 import threading
+import subprocess
 import webbrowser
 import socket
+import signal
 
 # ── Résoudre le chemin des ressources (PyInstaller ou dev) ──────
 def resource_path(relative_path):
@@ -25,7 +27,7 @@ from PIL import Image, ImageTk
 
 # ── Constantes ──────────────────────────────────────────────────
 APP_NAME    = "ACC Pit Wall"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.0-beta"
 WS_PORT     = 8765
 WS_HOST     = "localhost"
 HTML_FILE   = resource_path("acc_pitwall.html")
@@ -54,36 +56,40 @@ def is_port_free(port):
         return s.connect_ex((WS_HOST, port)) != 0
 
 def start_server():
-    """Démarre le serveur WebSocket dans le même processus que l'application.
-
-    Dans un .exe PyInstaller, relancer sys.executable pour lancer server.py
-    relance en réalité ACC_PitWall.exe lui-même. Cela créait une boucle
-    infinie de fenêtres/pages navigateur. On importe donc server.py et on lance
-    ACCServer directement dans ce thread.
-    """
     global server_running
+    server_script = resource_path("server.py")
 
-    if server_running:
-        add_log("[APW] Serveur déjà démarré.")
-        return
+    # Choisir l'interpréteur Python correct
+    if hasattr(sys, '_MEIPASS'):
+        # Dans le .exe — utiliser le Python embarqué
+        python_exe = sys.executable
+        cmd = [python_exe, server_script]
+    else:
+        cmd = [sys.executable, server_script]
 
-    add_log("[APW] Démarrage du serveur...")
+    add_log(f"[APW] Démarrage du serveur...")
+
+    import subprocess
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+    )
+
     server_running = True
+    add_log(f"[APW] Serveur démarré (PID {proc.pid})")
 
-    try:
-        import asyncio
-        from server import ACCServer
+    for line in proc.stdout:
+        line = line.rstrip()
+        if line:
+            add_log(line)
 
-        srv = ACCServer()
-        add_log(f"[APW] Serveur actif sur ws://{WS_HOST}:{WS_PORT}")
-        asyncio.run(srv.run())
-
-    except Exception as e:
-        add_log(f"[APW] ERREUR serveur : {e}")
-
-    finally:
-        server_running = False
-        add_log("[APW] Serveur arrêté.")
+    proc.wait()
+    server_running = False
+    add_log("[APW] Serveur arrêté.")
 
 def launch_server_thread():
     global server_thread
@@ -115,7 +121,7 @@ class APWApp(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.title(APP_NAME)
+        self.title(APP_NAME + " — Bêta")
         self.resizable(False, False)
         self.configure(bg='#0d0f12')
 
@@ -133,8 +139,6 @@ class APWApp(tk.Tk):
         self._build_ui()
         self._state = 'stopped'   # stopped | starting | running | acc_live
         self._server_started = False
-        self._server_starting = False
-        self._interface_opened = False
 
         # Démarrer le serveur immédiatement en arrière-plan
         self.after(200, self._auto_start)
@@ -156,16 +160,16 @@ class APWApp(tk.Tk):
         # Logo
         try:
             logo_img = Image.open(ICON_PNG).convert('RGBA')
-            logo_img = logo_img.resize((256, 256), Image.LANCZOS)
+            logo_img = logo_img.resize((140, 76), Image.LANCZOS)
             self._logo_photo = ImageTk.PhotoImage(logo_img)
             tk.Label(self, image=self._logo_photo, bg=C['bg0']).pack(pady=(22, 6))
         except:
             pass
 
         # Titre
-        tk.Label(self, text="ACC PIT WALL", font=('Segoe UI', 20, 'bold'),
+        tk.Label(self, text="ACC PIT WALL — BÊTA", font=('Segoe UI', 20, 'bold'),
                  fg=C['red'], bg=C['bg0']).pack()
-        tk.Label(self, text=f"v{APP_VERSION}", font=('Segoe UI', 9),
+        tk.Label(self, text=f"v{APP_VERSION} · version de test", font=('Segoe UI', 9),
                  fg=C['text2'], bg=C['bg0']).pack(pady=(0, 16))
 
         # ── Status card ──
@@ -243,9 +247,6 @@ class APWApp(tk.Tk):
 
     # ── ACTIONS ────────────────────────────────────────────────
     def _auto_start(self):
-        if self._server_starting or self._server_started:
-            return
-        self._server_starting = True
         self._set_status('starting', "Démarrage du serveur...", "Initialisation")
         launch_server_thread()
         # Attendre que le port soit ouvert
@@ -254,23 +255,18 @@ class APWApp(tk.Tk):
     def _check_server_ready(self, attempt=0):
         if not is_port_free(WS_PORT):
             self._server_started = True
-            self._server_starting = False
             self._set_status('running', "Serveur actif", "Prêt — Ouvrez l'interface")
             self._open_btn.config(state='normal')
-            # Ouvrir automatiquement le navigateur une seule fois
-            if not self._interface_opened:
-                self.after(400, self._open_interface)
+            # Ouvrir automatiquement le navigateur
+            self.after(400, self._open_interface)
         elif attempt < 30:
             self.after(300, lambda: self._check_server_ready(attempt + 1))
         else:
-            self._server_starting = False
             self._set_status('error', "Erreur de démarrage",
                              "Le serveur n'a pas pu démarrer")
 
     def _open_interface(self):
-        if not self._interface_opened:
-            open_interface()
-            self._interface_opened = True
+        open_interface()
         self._set_status('running', "Interface ouverte", "Le navigateur est lancé")
 
     def _set_status(self, state, label, sublabel):
@@ -316,7 +312,6 @@ class APWApp(tk.Tk):
         if self._server_started and is_port_free(WS_PORT):
             self._set_status('error', "Serveur arrêté", "Redémarrage en cours...")
             self._server_started = False
-            self._server_starting = False
             self.after(1000, self._auto_start)
         self.after(2000, self._poll_status)
 

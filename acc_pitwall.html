@@ -1006,6 +1006,7 @@
 const WS_URL = 'ws://localhost:8765';
 let ws = null;
 let wsReconnectTimer = null;
+let hasLiveData = false;
 
 function wsConnect() {
   if (ws && ws.readyState === WebSocket.OPEN) return;
@@ -1041,12 +1042,13 @@ function setServerStatus(state) {
   const dot  = document.getElementById('statusDot');
   const text = document.getElementById('statusText');
   dot.className = 'status-dot';
-  if (state === 'connected') {
-    dot.classList.add('warn');
-    text.textContent = 'SERVEUR CONNECTÉ';
-  } else if (state === 'live') {
+
+  if (state === 'live' || state === 'data') {
     dot.classList.add('live');
     text.textContent = 'SESSION ACTIVE';
+  } else if (state === 'connected') {
+    dot.classList.add('warn');
+    text.textContent = 'SERVEUR CONNECTÉ';
   } else {
     text.textContent = 'SERVEUR HORS LIGNE';
   }
@@ -1059,12 +1061,20 @@ function handleServerMessage(msg) {
   switch (msg.type) {
 
     case 'acc_status':
-      if (msg.status === 'live')       setServerStatus('live');
-      else if (msg.status === 'connected') setServerStatus('connected');
-      else setServerStatus('connected'); // serveur là mais ACC off
+      if (msg.status === 'live') {
+        hasLiveData = true;
+        setServerStatus('live');
+      } else if (msg.status === 'connected') {
+        if (!hasLiveData) setServerStatus('connected');
+      } else {
+        hasLiveData = false;
+        setServerStatus('offline');
+      }
       break;
 
     case 'new_session': {
+      hasLiveData = true;
+      setServerStatus('data');
       // ACC vient de détecter une nouvelle voiture/circuit
       sessionLaps = [];
       bestLapTime = Infinity;
@@ -1094,6 +1104,8 @@ function handleServerMessage(msg) {
     }
 
     case 'telemetry': {
+      hasLiveData = true;
+      setServerStatus('data');
       // Mise à jour live toutes les 500ms
       const d = msg.data;
       updateFuelGauge(d.fuel_remaining, d.tank_capacity);
@@ -1113,6 +1125,8 @@ function handleServerMessage(msg) {
     }
 
     case 'new_lap': {
+      hasLiveData = true;
+      setServerStatus('data');
       // Nouveau tour enregistré par le serveur
       const l = msg.lap;
       pushLap({
