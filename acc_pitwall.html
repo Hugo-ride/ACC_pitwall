@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACC Pit Wall</title>
+<link rel="icon" type="image/png" href="app_icon_512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg0:    #0a0b0d;
+    --bg1:    #101215;
+    --bg2:    #161a1f;
+    --bg3:    #1e2329;
+    --bg4:    #252c35;
+    --line:   rgba(255,255,255,0.07);
+    --line2:  rgba(255,255,255,0.13);
+    --red:    #e84040;
+    --red2:   #ff6b6b;
+    --orange: #f07030;
+    --amber:  #f5a623;
+    --green:  #3dd68c;
+    --green2: #1fb870;
+    --blue:   #4a9eff;
+    --text0:  #f0f2f5;
+    --text1:  #a8b0bc;
+    --text2:  #5e6878;
+    --mono:   'JetBrains Mono', monospace;
+    --cond:   'Barlow Condensed', sans-serif;
+    --body:   'Barlow', sans-serif;
+  }
+
+  html, body {
+    background: var(--bg0);
+    color: var(--text0);
+    font-family: var(--body);
+    font-size: 14px;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* ── LAYOUT ── */
+  .app {
+    display: grid;
+    grid-template-rows: 52px 1fr;
+    grid-template-columns: 220px 1fr 300px;
+    height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    grid-column: 1 / -1;
+    background: var(--bg1);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+  }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand-logo { width:34px; height:34px; object-fit:contain; flex:0 0 auto; }
+  .logo {
+    font-family: var(--cond);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--red);
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .logo span { color: var(--text0); }
+  .top-divider { width: 1px; height: 22px; background: var(--line2); }
+  .top-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--mono);
+  }
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text2);
+    transition: background 0.3s;
+  }
+  .status-dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.warn { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+  .top-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .top-time {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text1);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--bg1);
+    border-right: 1px solid var(--line);
+    padding: 16px 0;
+    overflow-y: auto;
+  }
+  .sidebar-section {
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+  .sidebar-label {
+    font-family: var(--cond);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--text2);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding: 0 4px;
+  }
+  .field-group { display: flex; flex-direction: column; gap: 8px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label {
+    font-size: 11px;
+    color: var(--text2);
+    font-family: var(--cond);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .field input, .field select {
+    background: var(--bg3);
+    border: 1px solid var(--line2);
+    border-radius: 4px;
+    color: var(--text0);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .field input:focus, .field select:focus { border-color: var(--red); }
+  .field select option { background: var(--bg3); }
+
+  .btn {
+    width: 100%;
+    padding: 9px;
+    border-radius: 4px;
+    border: none;
+    font-family: var(--cond);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--red);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--red2); }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--line2);
+    color: var(--text1);
+  }
+  .btn-secondary:hover { border-color: var(--text1); color: var(--text0); background: var(--bg3); }
+  .btn:active { transform: scale(0.97); }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text1);
+    cursor: pointer;
+    padding: 4px 0;
+  }
+  .checkbox-row input[type=checkbox] { accent-color: var(--red); cursor: pointer; }
+
+  .sidebar-divider {
+    height: 1px;
+    background: var(--line);
+    margin: 4px 16px 16px;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    background: var(--bg0);
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ── RESULT BANNER ── */
+  .result-banner {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px 24px;
+    display: none;
+  }
+  .result-banner.visible { display: block; }
+  .result-banner-top {
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+  .fuel-big {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .fuel-big-label {
+    font-family: var(--cond);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+  .fuel-big-value {
+    font-family: var(--cond);
+    font-size: 72px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--red);
+    letter-spacing: -0.01em;
+  }
+  .fuel-big-unit {
+    font-family: var(--cond);
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text1);
+    margin-bottom: 10px;
+    margin-left: 4px;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .stat-card {
+    background: var(--bg3);
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat-card-label {
+    font-family: var(--cond);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+  .stat-card-value {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text0);
+  }
+  .stat-card-value.green { color: var(--green); }
+  .stat-card-value.amber { color: var(--amber); }
+  .stat-card-value.red   { color: var(--red2); }
+
+  /* Pit windows */
+  .pit-bar {
+    background: var(--bg3);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-top: 4px;
+  }
+  .pit-bar-label {
+    font-family: var(--cond);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 10px;
+  }
+  .pit-track {
+    position: relative;
+    height: 8px;
+    background: var(--bg4);
+    border-radius: 4px;
+    margin-bottom: 6px;
+  }
+  .pit-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--green2), var(--amber), var(--red));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .pit-markers {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text2);
+  }
+  .pit-window-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .pit-tag {
+    background: var(--bg4);
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 3px;
+  }
+  .no-stop-tag {
+    background: rgba(61, 214, 140, 0.12);
+    border: 1px solid var(--green2);
+    color: var(--green);
+    font-family: var(--cond);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-top: 8px;
+  }
+
+  /* ── LAP TABLE ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .section-title {
+    font-family: var(--cond);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+  .lap-table-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    background: var(--bg3);
+    font-family: var(--cond);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text2);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--line);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg3); }
+  tbody td {
+    padding: 9px 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text1);
+  }
+  tbody td.best { color: var(--green); }
+  tbody td.lap-num { color: var(--text2); font-size: 11px; }
+  .badge {
+    display: inline-block;
+    font-family: var(--cond);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 2px;
+  }
+  .badge-best { background: rgba(61,214,140,0.15); color: var(--green); }
+  .badge-purple { background: rgba(138,100,255,0.15); color: #a084ff; }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text2);
+    font-family: var(--cond);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    background: var(--bg1);
+    border-left: 1px solid var(--line);
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .mini-section-title {
+    font-family: var(--cond);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 10px;
+  }
+
+  /* Live telemetry */
+  .tele-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .tele-card {
+    background: var(--bg3);
+    border-radius: 5px;
+    padding: 10px 12px;
+  }
+  .tele-label {
+    font-family: var(--cond);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 3px;
+  }
+  .tele-value {
+    font-family: var(--mono);
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--text0);
+  }
+  .tele-value.green { color: var(--green); }
+  .tele-value.amber { color: var(--amber); }
+
+  /* Fuel gauge */
+  .fuel-gauge-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .fuel-gauge-bar {
+    position: relative;
+    height: 12px;
+    background: var(--bg4);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 10px 0 6px;
+  }
+  .fuel-gauge-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    border-radius: 6px;
+    transition: width 0.4s ease, background 0.4s;
+  }
+  .fuel-gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  /* History stats */
+  .hist-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .hist-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--bg3);
+    border-radius: 5px;
+  }
+  .hist-row-label { font-size: 11px; color: var(--text2); font-family: var(--cond); letter-spacing: 0.06em; text-transform: uppercase; }
+  .hist-row-value { font-family: var(--mono); font-size: 13px; color: var(--text0); }
+
+  /* Lap chart mini */
+  .mini-chart { position: relative; height: 80px; margin-top: 8px; }
+  canvas.chart-canvas { width: 100% !important; height: 100% !important; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 3px;
+  }
+  .tab {
+    flex: 1;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    font-family: var(--cond);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab.active { background: var(--bg4); color: var(--text0); }
+
+
+  /* ── Session switch + grouped stats ── */
+  .session-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .session-switch button {
+    background: var(--bg3);
+    border: 1px solid var(--line2);
+    color: var(--text1);
+    border-radius: 4px;
+    padding: 7px 6px;
+    font-family: var(--cond);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .session-switch button.active { background: var(--red); border-color: var(--red); color: #fff; }
+  .session-note { margin-top: 6px; font-family: var(--mono); font-size: 9px; color: var(--text2); }
+  .lap-separator td {
+    background: rgba(232,64,64,.08);
+    color: var(--text1);
+    font-family: var(--cond);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    padding: 6px 14px !important;
+    border-top: 1px solid var(--line2);
+    border-bottom: 1px solid var(--line);
+  }
+  .stats-group-title {
+    font-family: var(--cond);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--text0);
+    padding: 8px 8px 2px;
+  }
+  .stats-group-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text2);
+    padding: 0 8px 6px;
+  }
+  .stats-day-title {
+    font-family: var(--cond);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--amber);
+    padding: 8px 8px 2px;
+    border-top: 1px solid var(--line);
+    margin-top: 6px;
+  }
+  .stats-day-block {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px;
+    margin-bottom: 8px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+
+  /* Alerts */
+  .alert {
+    padding: 10px 14px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-family: var(--cond);
+    letter-spacing: 0.06em;
+    display: none;
+  }
+  .alert.visible { display: block; }
+  .alert-warn { background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.3); color: var(--amber); }
+  .alert-danger { background: rgba(232,64,64,0.12); border: 1px solid rgba(232,64,64,0.3); color: var(--red2); }
+  .alert-success { background: rgba(61,214,140,0.12); border: 1px solid rgba(61,214,140,0.3); color: var(--green); }
+
+  /* Saved cars list */
+  .car-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .car-entry:hover { background: var(--bg3); }
+  .car-entry.selected { background: var(--bg4); }
+  .car-entry-name { font-size: 12px; color: var(--text0); font-family: var(--cond); letter-spacing: 0.05em; }
+  .car-entry-sub { font-size: 10px; color: var(--text2); font-family: var(--mono); }
+  .car-entry-badge { font-family: var(--mono); font-size: 10px; color: var(--amber); }
+
+
+  /* ── TOP NAV ── */
+  .nav-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .nav-tab {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text2);
+    font-family: var(--cond);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 7px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .nav-tab:hover { color: var(--text0); background: var(--bg2); }
+  .nav-tab.active { color: var(--text0); background: var(--bg3); border-color: var(--line); }
+  .page { display: flex; flex-direction: column; gap: 16px; }
+  .page.hidden { display: none; }
+
+  /* ── STATS PAGE ── */
+  .stats-layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; min-height: calc(100vh - 100px); }
+  .stats-panel { background: var(--bg2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .stats-panel-head { padding: 12px 14px; border-bottom: 1px solid var(--line); font-family: var(--cond); font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--text2); display:flex; justify-content:space-between; align-items:center; }
+  .stats-list { display:flex; flex-direction:column; gap:4px; padding: 8px; max-height: calc(100vh - 150px); overflow:auto; }
+  .stats-entry { background: var(--bg3); border: 1px solid transparent; border-radius: 6px; padding: 10px 12px; cursor:pointer; }
+  .stats-entry:hover, .stats-entry.selected { border-color: var(--line2); background: var(--bg4); }
+  .stats-entry-title { font-family: var(--cond); font-size: 14px; font-weight: 600; letter-spacing:.06em; color: var(--text0); text-transform:uppercase; }
+  .stats-entry-sub { font-family: var(--mono); font-size: 10px; color: var(--text2); margin-top:3px; }
+  .session-entry { margin-left: 14px; border-left: 2px solid var(--line2); }
+  .stats-detail { padding: 16px; display:flex; flex-direction:column; gap:14px; }
+  .stats-title-row { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
+  .stats-title { font-family: var(--cond); font-size: 26px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+  .stats-subtitle { font-family: var(--mono); font-size: 11px; color: var(--text2); margin-top:4px; }
+  .stats-position { background: var(--bg3); border-radius: 8px; padding: 12px 16px; text-align:right; min-width: 110px; }
+  .stats-position-label { font-family: var(--cond); font-size: 10px; letter-spacing:.16em; color: var(--text2); text-transform:uppercase; }
+  .stats-position-value { font-family: var(--cond); font-size: 34px; line-height:1; color: var(--green); font-weight:700; }
+  .stats-kpi-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; }
+  .stats-kpi { background: var(--bg3); border-radius:6px; padding:10px 12px; }
+  .stats-kpi-label { font-family: var(--cond); font-size:10px; color:var(--text2); letter-spacing:.14em; text-transform:uppercase; }
+  .stats-kpi-value { font-family: var(--mono); font-size:16px; color:var(--text0); margin-top:3px; }
+  .lap-status-select { background: var(--bg4); border: 1px solid var(--line2); color: var(--text0); border-radius: 4px; padding: 3px 6px; font-family: var(--cond); font-size: 11px; letter-spacing:.06em; text-transform:uppercase; }
+  .muted-note { font-family: var(--cond); font-size: 11px; color: var(--text2); letter-spacing:.08em; text-transform:uppercase; }
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand"><img src="app_icon_512.png" alt="ACC Pit Wall" class="brand-logo"><div class="logo">ACC<span> PIT WALL</span></div></div>
+    <div class="top-divider"></div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" id="tabStrategy" onclick="showPage('strategy')">Stratégie</button>
+      <button class="nav-tab" id="tabStats" onclick="showPage('stats')">Statistiques</button>
+    </nav>
+    <div class="top-divider"></div>
+    <div class="top-status">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">HORS LIGNE</span>
+    </div>
+    <div class="top-divider"></div>
+    <div class="top-status" id="sessionInfo" style="color:var(--text1)">—</div>
+    <div class="top-right">
+      <div class="top-time" id="topClock">00:00:00</div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Stratégie</div>
+      <div class="field-group">
+        <div class="field">
+          <label>Durée course (min)</label>
+          <input type="number" id="raceDuration" value="60" min="1" max="1440" placeholder="60">
+        </div>
+        <div class="field">
+          <label>Temps au tour</label>
+          <input type="text" id="lapTime" placeholder="1:47.500" value="">
+        </div>
+        <div class="field">
+          <label>Conso / tour (L)</label>
+          <input type="number" id="fuelPerLap" step="0.1" placeholder="2.8" value="">
+        </div>
+        <div class="field">
+          <label>Capacité réservoir (L)</label>
+          <input type="number" id="tankCapacity" value="120" min="10" max="200">
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="formationLap">
+          <label for="formationLap">Tour de formation</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="extraLap">
+          <label for="extraLap">+1 tour sécurité sup.</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <button class="btn btn-primary" onclick="calculateStrategy()">CALCULER</button>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Session</div>
+      <div class="field-group">
+        <div class="field">
+          <label>Voiture</label>
+          <input type="text" id="carName" placeholder="ferrari_488_gt3_evo">
+        </div>
+        <div class="field">
+          <label>Circuit</label>
+          <input type="text" id="trackName" placeholder="monza">
+        </div>
+        <div class="field">
+          <label>Type</label>
+          <select id="sessionType">
+            <option>Practice</option>
+            <option>Qualifying</option>
+            <option selected>Race</option>
+          </select>
+          <div class="session-switch">
+            <button type="button" id="btnQualifying" onclick="setManualSessionType('Qualifying')">Qualif</button>
+            <button type="button" id="btnRace" onclick="setManualSessionType('Race')">Course</button>
+          </div>
+          <div class="session-note" id="sessionLockNote">Auto ACC actif</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="field-group">
+        <button class="btn btn-secondary" onclick="addManualLap()">+ AJOUTER UN TOUR</button>
+        <button class="btn btn-secondary" onclick="clearSession()">EFFACER SESSION</button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="page" id="strategyPage">
+
+    <!-- Result banner -->
+    <div class="result-banner" id="resultBanner">
+      <div class="result-banner-top">
+        <div class="fuel-big">
+          <div class="fuel-big-label">Carburant à charger</div>
+          <div style="display:flex;align-items:baseline;">
+            <div class="fuel-big-value" id="resFuel">—</div>
+            <div class="fuel-big-unit">L</div>
+          </div>
+        </div>
+        <div style="flex:1"></div>
+        <div id="stopTag"></div>
+      </div>
+
+      <div class="result-grid">
+        <div class="stat-card">
+          <div class="stat-card-label">Tours estimés</div>
+          <div class="stat-card-value" id="resLaps">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Temps au tour</div>
+          <div class="stat-card-value" id="resLapTime">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Conso / tour</div>
+          <div class="stat-card-value" id="resFuelLap">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Carburant brut</div>
+          <div class="stat-card-value" id="resFuelRaw">—</div>
+        </div>
+      </div>
+
+      <div class="pit-bar" id="pitBarWrap" style="margin-top:12px">
+        <div class="pit-bar-label">Progression de course</div>
+        <div class="pit-track">
+          <div class="pit-fill" id="pitFill" style="width:0%"></div>
+        </div>
+        <div class="pit-markers">
+          <span>Tour 1</span>
+          <span id="pitMidLabel"></span>
+          <span id="pitEndLabel"></span>
+        </div>
+        <div class="pit-window-tags" id="pitTags"></div>
+      </div>
+    </div>
+
+    <!-- Lap table -->
+    <div>
+      <div class="section-header">
+        <div class="section-title">Historique des tours</div>
+        <div id="lapCount" style="font-family:var(--mono);font-size:11px;color:var(--text2)">0 tours</div>
+      </div>
+      <div class="lap-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>État</th>
+              <th>#</th>
+              <th>Temps</th>
+              <th>Δ Meilleur</th>
+              <th>Conso (L)</th>
+              <th>Fuel restant</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody id="lapTbody">
+            <tr><td colspan="6" class="empty-state">Aucun tour enregistré</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    </div>
+
+    <div class="page hidden" id="statsPage">
+      <div class="stats-layout">
+        <div class="stats-panel">
+          <div class="stats-panel-head">
+            <span>Stats sauvegardées</span>
+            <span id="statsEntryCount">0</span>
+          </div>
+          <div class="stats-list" id="statsList">
+            <div class="empty-state">Aucune donnée</div>
+          </div>
+        </div>
+
+        <div class="stats-panel">
+          <div class="stats-panel-head">
+            <span>Détails</span>
+            <span class="muted-note">Sans image circuit</span>
+          </div>
+          <div class="stats-detail" id="statsDetail">
+            <div class="empty-state">Sélectionne une course ou une session à gauche</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="right-panel">
+
+    <!-- Fuel gauge -->
+    <div class="fuel-gauge-wrap">
+      <div class="mini-section-title">Carburant restant</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;">
+        <div style="font-family:var(--mono);font-size:26px;font-weight:500;" id="fuelRemaining">—</div>
+        <div style="font-size:11px;color:var(--text2);font-family:var(--mono);" id="fuelCapLabel">/ 120 L</div>
+      </div>
+      <div class="fuel-gauge-bar">
+        <div class="fuel-gauge-fill" id="fuelGaugeFill" style="width:0%"></div>
+      </div>
+      <div class="fuel-gauge-labels">
+        <span>0</span>
+        <span id="fuelGaugeMax">120 L</span>
+      </div>
+    </div>
+
+    <!-- Live tele -->
+    <div>
+      <div class="mini-section-title">Télémétrie live</div>
+      <div class="tele-grid">
+        <div class="tele-card">
+          <div class="tele-label">Dernier tour</div>
+          <div class="tele-value" id="tLastLap">—</div>
+        </div>
+        <div class="tele-card">
+          <div class="tele-label">Meilleur tour</div>
+          <div class="tele-value green" id="tBestLap">—</div>
+        </div>
+        <div class="tele-card">
+          <div class="tele-label">Conso moy.</div>
+          <div class="tele-value" id="tAvgFuel">—</div>
+        </div>
+        <div class="tele-card">
+          <div class="tele-label">Temps restant</div>
+          <div class="tele-value amber" id="tTimeLeft">—</div>
+        </div>
+        <div class="tele-card">
+          <div class="tele-label">Position</div>
+          <div class="tele-value green" id="tPosition">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mini chart -->
+    <div>
+      <div class="mini-section-title">Temps au tour</div>
+      <div class="mini-chart">
+        <canvas id="lapChart" class="chart-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- Stats historiques -->
+    <div>
+      <div class="mini-section-title">Stats sauvegardées</div>
+      <div class="hist-grid" id="histGrid">
+        <div style="text-align:center;padding:20px;color:var(--text2);font-family:var(--cond);font-size:11px;letter-spacing:0.1em;">
+          AUCUNE DONNÉE
+        </div>
+      </div>
+    </div>
+
+    <!-- Combinaisons sauvegardées -->
+    <div>
+      <div class="mini-section-title">Circuits / Voitures</div>
+      <div id="savedCombos" style="display:flex;flex-direction:column;gap:2px;">
+        <div style="text-align:center;padding:14px;color:var(--text2);font-family:var(--cond);font-size:11px;letter-spacing:0.1em;">
+          AUCUNE DONNÉE
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+<!-- Add lap modal overlay (fake modal — flows in layout) -->
+<div id="lapModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;">
+  <div style="background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:24px;width:320px;">
+    <div style="font-family:var(--cond);font-size:16px;font-weight:600;letter-spacing:0.1em;margin-bottom:16px;">AJOUTER UN TOUR</div>
+    <div class="field-group" style="gap:10px;">
+      <div class="field">
+        <label>Temps au tour</label>
+        <input type="text" id="mLapTime" placeholder="1:47.500">
+      </div>
+      <div class="field">
+        <label>Consommation (L)</label>
+        <input type="number" id="mFuelUsed" step="0.01" placeholder="2.85">
+      </div>
+      <div class="field">
+        <label>Fuel restant (L)</label>
+        <input type="number" id="mFuelLeft" step="0.1" placeholder="95.0">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-primary" style="flex:1" onclick="confirmLap()">AJOUTER</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="closeModal()">ANNULER</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════
+//  WEBSOCKET — connexion au serveur Python
+// ═══════════════════════════════════════════════════
+const WS_URL = 'ws://localhost:8765';
+let ws = null;
+let wsReconnectTimer = null;
+
+function wsConnect() {
+  if (ws && ws.readyState === WebSocket.OPEN) return;
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    clearTimeout(wsReconnectTimer);
+    setServerStatus('connected');
+  };
+
+  ws.onclose = () => {
+    setServerStatus('offline');
+    // Reconnexion automatique toutes les 3s
+    wsReconnectTimer = setTimeout(wsConnect, 3000);
+  };
+
+  ws.onerror = () => {
+    setServerStatus('offline');
+  };
+
+  ws.onmessage = (e) => {
+    try { handleServerMessage(JSON.parse(e.data)); }
+    catch(err) { console.error('WS parse error', err); }
+  };
+}
+
+function wsSend(payload) {
+  if (ws && ws.readyState === WebSocket.OPEN)
+    ws.send(JSON.stringify(payload));
+}
+
+function setServerStatus(state) {
+  const dot  = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  dot.className = 'status-dot';
+  if (state === 'connected') {
+    dot.classList.add('warn');
+    text.textContent = 'SERVEUR CONNECTÉ';
+  } else if (state === 'live') {
+    dot.classList.add('live');
+    text.textContent = 'SESSION ACTIVE';
+  } else {
+    text.textContent = 'SERVEUR HORS LIGNE';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  HANDLER MESSAGES SERVEUR
+// ═══════════════════════════════════════════════════
+function handleServerMessage(msg) {
+  switch (msg.type) {
+
+    case 'acc_status':
+      if (msg.status === 'live')       setServerStatus('live');
+      else if (msg.status === 'connected') setServerStatus('connected');
+      else setServerStatus('connected'); // serveur là mais ACC off
+      break;
+
+    case 'new_session': {
+      // ACC vient de détecter une nouvelle voiture/circuit
+      sessionLaps = [];
+      bestLapTime = Infinity;
+      if (lapChart) { lapChart.data.labels=[]; lapChart.data.datasets[0].data=[]; lapChart.update(); }
+
+      document.getElementById('carName').value   = msg.car;
+      document.getElementById('trackName').value = msg.track;
+      document.getElementById('sessionInfo').textContent =
+        msg.car.toUpperCase() + ' — ' + msg.track.toUpperCase();
+
+      const tank = msg.tank || 120;
+      document.getElementById('tankCapacity').value         = tank;
+      document.getElementById('fuelGaugeMax').textContent   = tank + ' L';
+      document.getElementById('fuelCapLabel').textContent   = '/ ' + tank + ' L';
+
+      // Si historique dispo → pré-remplir et afficher stats
+      if (msg.session) document.getElementById('sessionType').value = msg.session;
+      if (msg.hist_data) renderStatsDetail(msg.hist_data, null);
+
+      const s = msg.hist_stats;
+      if (s && s.valid_laps) {
+        document.getElementById('lapTime').value    = formatTime(s.avg_lap_time_sec);
+        document.getElementById('fuelPerLap').value = Number(s.avg_fuel_per_lap).toFixed(2);
+        renderHistStats(s);
+      }
+      break;
+    }
+
+    case 'telemetry': {
+      // Mise à jour live toutes les 500ms
+      const d = msg.data;
+      updateFuelGauge(d.fuel_remaining, d.tank_capacity);
+
+      // Temps restant
+      if (d.session_time_left_sec > 0) {
+        const m = Math.floor(d.session_time_left_sec / 60);
+        const s = Math.floor(d.session_time_left_sec % 60);
+        document.getElementById('tTimeLeft').textContent = `${m}:${String(s).padStart(2,'0')}`;
+      }
+      if (d.position && d.position > 0) document.getElementById('tPosition').textContent = 'P' + d.position;
+      if (d.session_type && !manualSessionTypeLocked) {
+        document.getElementById('sessionType').value = d.session_type;
+        refreshSessionButtons();
+      }
+      break;
+    }
+
+    case 'new_lap': {
+      // Nouveau tour enregistré par le serveur
+      const l = msg.lap;
+      pushLap({
+        lapTimeSec:   l.lap_time_sec,
+        fuelUsed:     l.fuel_used,
+        fuelLeft:     l.fuel_remaining,
+        car:          document.getElementById('carName').value,
+        track:        document.getElementById('trackName').value,
+        sessionType:  l.session_type,
+        position:     l.position,
+        lapId:        l.lap_id,
+        status:       l.status || 'valid',
+        sessionId:    l.session_id,
+        sessionName:  l.session_name,
+        sessionDay:   l.session_day,
+      });
+      // Mettre à jour stats historiques
+      if (msg.stats) renderHistStats(msg.stats);
+      break;
+    }
+
+    case 'all_stats': {
+      // Liste complète de toutes les combos sauvegardées
+      allStatsData = msg.data || [];
+      renderSavedCombos(allStatsData);
+      renderStatsList(allStatsData);
+      break;
+    }
+
+    case 'stats': {
+      statsDetailData = msg.data;
+      renderStatsDetail(msg.data, null);
+      if (msg.data && msg.data.stats) renderHistStats(msg.data.stats);
+      break;
+    }
+
+    case 'strategy_result': {
+      renderStrategy(msg.data);
+      break;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  SESSION STATE
+// ═══════════════════════════════════════════════════
+let sessionLaps = [];
+let bestLapTime = Infinity;
+let lapChart    = null;
+let allStatsData = [];
+let statsDetailData = null;
+let manualSessionTypeLocked = false;
+const STATUS_LABELS = {
+  valid: 'Valide',
+  track_limits: 'Limites de piste',
+  manual_excluded: 'Exclu manuellement',
+  auto_outlier: 'Exclu auto (aberrant)'
+};
+
+function shortSessionName(type) {
+  if (type === 'Race') return 'COURSE';
+  if (type === 'Qualifying') return 'QUALIF';
+  if (type === 'Practice') return 'ESSAIS';
+  return type || 'SESSION';
+}
+function refreshSessionButtons() {
+  const type = document.getElementById('sessionType')?.value;
+  document.getElementById('btnQualifying')?.classList.toggle('active', type === 'Qualifying');
+  document.getElementById('btnRace')?.classList.toggle('active', type === 'Race');
+  const note = document.getElementById('sessionLockNote');
+  if (note) note.textContent = manualSessionTypeLocked ? `Forcé en ${shortSessionName(type)}` : 'Auto ACC actif';
+}
+function setManualSessionType(type) {
+  manualSessionTypeLocked = true;
+  document.getElementById('sessionType').value = type;
+  refreshSessionButtons();
+  wsSend({ type: 'set_session_type', session_type: type, force_new_session: true });
+  flash(`Type forcé : ${shortSessionName(type)}. Le prochain tour crée une séparation.`);
+}
+function normalizeText(value, fallback='Inconnu') {
+  return value && String(value).trim() ? String(value).trim() : fallback;
+}
+function sessionDay(entry) {
+  return entry.session_day || (entry.start_time ? String(entry.start_time).slice(0,10) : (entry.laps?.[0]?.timestamp ? String(entry.laps[0].timestamp).slice(0,10) : 'date_inconnue'));
+}
+function groupStats(entries) {
+  const grouped = {};
+  (entries || []).forEach(entry => {
+    const track = normalizeText(entry.track, 'Circuit inconnu');
+    const car = normalizeText(entry.car, 'Voiture inconnue');
+    const day = sessionDay(entry);
+    grouped[track] ??= {};
+    grouped[track][car] ??= {};
+    grouped[track][car][day] ??= [];
+    grouped[track][car][day].push(entry);
+  });
+  return grouped;
+}
+function aggregateSessionEntries(entries) {
+  let total = 0, sessions = 0;
+  (entries || []).forEach(e => { sessions++; total += Number(e.stats?.total_laps ?? 0); });
+  return { total_sessions: sessions, total_laps: total };
+}
+function formatSessionDisplayName(entry) {
+  if (entry.session_name) return entry.session_name;
+  const i = entry.session_index || '';
+  if (entry.session_type === 'Race') return `Course ${i}`.trim();
+  if (entry.session_type === 'Qualifying') return `Qualifications ${i}`.trim();
+  if (entry.session_type === 'Practice') return `Essais libres ${i}`.trim();
+  return entry.session_type || 'Session';
+}
+function formatSessionDate(entry) {
+  const d = sessionDay(entry);
+  return d === 'date_inconnue' ? 'Date inconnue' : new Date(d).toLocaleDateString('fr-FR');
+}
+
+// ═══════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════
+function parseTime(str) {
+  str = str.trim();
+  if (str.includes(':')) {
+    const [m, s] = str.split(':');
+    return parseInt(m) * 60 + parseFloat(s);
+  }
+  return parseFloat(str);
+}
+
+function formatTime(sec) {
+  if (!sec || isNaN(sec)) return '—';
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s.toFixed(3).padStart(6,'0')}`;
+}
+
+function formatDelta(sec) {
+  if (sec === 0) return '—';
+  return `${sec > 0 ? '+' : ''}${sec.toFixed(3)}s`;
+}
+
+// ── CLOCK ───────────────────────────────────────────
+function updateClock() {
+  document.getElementById('topClock').textContent =
+    new Date().toTimeString().slice(0,8);
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ═══════════════════════════════════════════════════
+//  CALCUL STRATÉGIE
+// ═══════════════════════════════════════════════════
+function calculateStrategy() {
+  const duration   = parseFloat(document.getElementById('raceDuration').value);
+  const lapTimeStr = document.getElementById('lapTime').value.trim();
+  const fuelPerLap = parseFloat(document.getElementById('fuelPerLap').value);
+  const tank       = parseFloat(document.getElementById('tankCapacity').value) || 120;
+  const formation  = document.getElementById('formationLap').checked;
+  const extraLap   = document.getElementById('extraLap').checked;
+
+  let lapTimeSec = lapTimeStr ? parseTime(lapTimeStr) : null;
+  let fuel       = isNaN(fuelPerLap) ? null : fuelPerLap;
+
+  // Fallback sur les tours VALIDES uniquement
+  const validForCalc = sessionLaps.filter(isLapIncluded);
+  if (validForCalc.length >= 1) {
+    if (!lapTimeSec) lapTimeSec = validForCalc.reduce((a,b)=>a+b.lapTimeSec,0) / validForCalc.length;
+    const fuelLaps = validForCalc.filter(l => l.fuelUsed > 0);
+    if (!fuel && fuelLaps.length) fuel = fuelLaps.reduce((a,b)=>a+b.fuelUsed,0) / fuelLaps.length;
+  }
+
+  if (!duration || isNaN(duration))     { flash('Durée de course manquante.');   return; }
+  if (!lapTimeSec || isNaN(lapTimeSec)) { flash('Temps au tour manquant.');       return; }
+  if (!fuel || isNaN(fuel))             { flash('Consommation manquante.');       return; }
+
+  // Envoyer au serveur (il recalcule et répond) OU calculer localement
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    wsSend({ type: 'set_session_type', session_type: document.getElementById('sessionType').value });
+    wsSend({ type: 'calculate', race_duration_min: duration, lap_time_sec: lapTimeSec,
+             fuel_per_lap: fuel, tank_capacity: tank, formation_lap: formation, extra_lap: extraLap });
+  } else {
+    renderStrategy(calcLocal(duration, lapTimeSec, fuel, tank, formation, extraLap));
+  }
+
+  document.getElementById('lapTime').value    = formatTime(lapTimeSec);
+  document.getElementById('fuelPerLap').value = fuel.toFixed(2);
+}
+
+function calcLocal(duration, lapTimeSec, fuel, tank, formation, extra) {
+  const raceSec  = duration * 60;
+  const estLaps  = Math.ceil(raceSec / lapTimeSec);
+  const margin   = 1 + (extra ? 1 : 0) + (formation ? 1 : 0);
+  const fuelRaw  = (estLaps + margin) * fuel;
+  const fuelLoad = Math.min(Math.ceil(fuelRaw), tank);
+  const pitStops = Math.max(0, Math.ceil(estLaps / (tank / fuel)) - 1);
+  const pitWins  = [];
+  if (pitStops > 0) {
+    const lps = estLaps / (pitStops + 1);
+    for (let i = 1; i <= pitStops; i++) pitWins.push(Math.round(lps * i));
+  }
+  return { fuel_to_load: fuelLoad, fuel_raw: fuelRaw.toFixed(2), estimated_laps: estLaps,
+           pit_stops: pitStops, pit_windows: pitWins, lap_time_sec: lapTimeSec,
+           fuel_per_lap: fuel, tank_capacity: tank, race_duration_min: duration };
+}
+
+// Stratégie courante — mise à jour la barre à chaque tour
+let currentStrategy = null;
+
+function renderStrategy(d) {
+  currentStrategy = d;
+  document.getElementById('resultBanner').classList.add('visible');
+  document.getElementById('resFuel').textContent    = d.fuel_to_load;
+  document.getElementById('resLaps').textContent    = d.estimated_laps;
+  document.getElementById('resLapTime').textContent = formatTime(d.lap_time_sec);
+  document.getElementById('resFuelLap').textContent = parseFloat(d.fuel_per_lap).toFixed(2) + ' L';
+  document.getElementById('resFuelRaw').textContent = parseFloat(d.fuel_raw).toFixed(1) + ' L';
+
+  const loadPct = d.fuel_to_load / d.tank_capacity;
+  document.getElementById('resFuel').style.color =
+    loadPct > 0.9 ? 'var(--red)' : loadPct > 0.7 ? 'var(--amber)' : 'var(--green)';
+
+  const stopEl = document.getElementById('stopTag');
+  stopEl.innerHTML = d.pit_stops === 0
+    ? '<div class="no-stop-tag">NO-STOP</div>'
+    : `<div class="no-stop-tag" style="border-color:var(--amber);color:var(--amber);background:rgba(245,166,35,0.1)">${d.pit_stops} ARRÊT${d.pit_stops>1?'S':''}</div>`;
+
+  // Labels
+  document.getElementById('pitMidLabel').textContent = 'Tour ' + Math.round(d.estimated_laps / 2);
+  document.getElementById('pitEndLabel').textContent = 'Tour ' + d.estimated_laps;
+
+  // Barre d'essence : part pleine, se vide au fil des tours
+  updateFuelBar(d);
+
+  const tagsEl = document.getElementById('pitTags');
+  tagsEl.innerHTML = '';
+  if (d.pit_windows && d.pit_windows.length) {
+    d.pit_windows.forEach(lap => {
+      const t = document.createElement('div');
+      t.className = 'pit-tag';
+      t.textContent = 'PIT Tour ' + lap;
+      tagsEl.appendChild(t);
+    });
+  } else {
+    tagsEl.innerHTML = '<div style="font-size:11px;color:var(--green);font-family:var(--cond);letter-spacing:0.08em;">Pas d\'arrêt nécessaire</div>';
+  }
+}
+
+// Barre essence : représente le carburant restant estimé au fil des tours valides
+function updateFuelBar(d) {
+  const validDone = sessionLaps.filter(isLapIncluded).length;
+  const fuelUsedEst = validDone * parseFloat(d.fuel_per_lap);
+  const fuelLeft = Math.max(0, d.fuel_to_load - fuelUsedEst);
+  const pct = (fuelLeft / d.fuel_to_load) * 100;
+  const fill = document.getElementById('pitFill');
+  fill.style.width = pct.toFixed(1) + '%';
+  fill.style.background = pct < 20 ? 'var(--red)' : pct < 40 ? 'var(--amber)' : 'linear-gradient(90deg, var(--green2), var(--amber), var(--red))';
+  // Mettre à jour le label de gauche avec le fuel restant estimé
+  const startLabel = document.querySelector('.pit-markers span:first-child');
+  if (startLabel) startLabel.textContent = fuelLeft > 0 ? fuelLeft.toFixed(1) + ' L restant' : 'Vide';
+}
+
+// ═══════════════════════════════════════════════════
+//  GESTION DES TOURS
+// ═══════════════════════════════════════════════════
+function addManualLap() {
+  document.getElementById('lapModal').style.display = 'flex';
+  document.getElementById('mLapTime').focus();
+}
+function closeModal() {
+  document.getElementById('lapModal').style.display = 'none';
+}
+
+function confirmLap() {
+  const lapTimeStr = document.getElementById('mLapTime').value.trim();
+  const fuelUsed   = parseFloat(document.getElementById('mFuelUsed').value);
+  const fuelLeft   = parseFloat(document.getElementById('mFuelLeft').value);
+  if (!lapTimeStr) { flash('Temps au tour requis.'); return; }
+  const lapTimeSec = parseTime(lapTimeStr);
+  if (isNaN(lapTimeSec) || lapTimeSec <= 0) { flash('Format invalide (ex: 1:47.500)'); return; }
+
+  const car   = document.getElementById('carName').value.trim()  || 'Unknown';
+  const track = document.getElementById('trackName').value.trim() || 'Unknown';
+  const type  = document.getElementById('sessionType').value;
+
+  pushLap({ lapTimeSec, fuelUsed: isNaN(fuelUsed)?0:fuelUsed, fuelLeft: isNaN(fuelLeft)?0:fuelLeft, car, track, sessionType: type, status:'valid' });
+
+  // Sauvegarder via le serveur si connecté, sinon localStorage
+  wsSend({ type: 'set_session_type', session_type: type });
+  wsSend({ type: 'save_lap', car, track, session_type: type, lap: { lap_time_sec: lapTimeSec, fuel_used: isNaN(fuelUsed)?0:fuelUsed, fuel_remaining: isNaN(fuelLeft)?0:fuelLeft, session_type: type, status: 'valid' } });
+
+  closeModal();
+  document.getElementById('mLapTime').value  = '';
+  document.getElementById('mFuelUsed').value = '';
+  document.getElementById('mFuelLeft').value = '';
+}
+
+function isLapIncluded(lap) { const s = lap.status || 'valid'; return s === 'valid' || s === 'track_limits'; }
+
+function recalcBestLap() {
+  const valid = sessionLaps.filter(isLapIncluded).filter(l => l.lapTimeSec > 0);
+  bestLapTime = valid.length ? Math.min(...valid.map(l => l.lapTimeSec)) : Infinity;
+}
+
+// Détection des outliers basée sur la médiane (7% de tolérance)
+function recomputeOutliers() {
+  // Ne recalcule que les tours non-exclus manuellement et non-limites
+  const autoEligible = sessionLaps.filter(l => l.status === 'valid' || l.status === 'auto_outlier');
+  const times = autoEligible.map(l => l.lapTimeSec).sort((a,b)=>a-b);
+  if (times.length < 2) { autoEligible.forEach(l => { if(l.status==='auto_outlier') l.status='valid'; }); return; }
+  const mid = Math.floor(times.length/2);
+  const med = times.length%2 ? times[mid] : (times[mid-1]+times[mid])/2;
+  const threshold = med * 1.07;
+  autoEligible.forEach(l => {
+    if (l.status === 'track_limits' || l.status === 'manual_excluded') return;
+    l.status = l.lapTimeSec > threshold ? 'auto_outlier' : 'valid';
+  });
+}
+
+function pushLap(lap) {
+  lap.lap = sessionLaps.length + 1;
+  lap.status = lap.status || 'valid';
+  sessionLaps.push(lap);
+  recomputeOutliers();
+  recalcBestLap();
+  renderLapTable();
+  updateTele(lap);
+  updateLapChart();
+  if (lap.fuelLeft > 0) updateFuelGauge(lap.fuelLeft, parseFloat(document.getElementById('tankCapacity').value)||120);
+  // Mettre à jour la barre d'essence si une stratégie est calculée
+  if (currentStrategy) updateFuelBar(currentStrategy);
+}
+
+function renderLapTable() {
+  const tbody = document.getElementById('lapTbody');
+  tbody.innerHTML = '';
+  const totalL = sessionLaps.length, validL = sessionLaps.filter(isLapIncluded).length;
+  document.getElementById('lapCount').textContent = `${totalL} tour${totalL>1?'s':''} · ${validL} valide${validL>1?'s':''}`;
+
+  if (!sessionLaps.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun tour enregistré</td></tr>';
+    return;
+  }
+
+  const dotStyle = {
+    valid:           'background:#2ecc8a;border:1.5px solid rgba(46,204,138,.4)',
+    track_limits:    'background:#f5a623;border:1.5px solid rgba(245,166,35,.4)',
+    manual_excluded: 'background:#e84040;border:1.5px solid rgba(232,64,64,.4)',
+    auto_outlier:    'background:#555;border:1.5px solid #444',
+  };
+  const dotTip = {
+    valid:           'Tour valide — cliquer pour changer',
+    track_limits:    'Limites de piste — cliquer pour changer',
+    manual_excluded: 'Exclu manuellement — cliquer pour changer',
+    auto_outlier:    'Exclu auto (aberrant) — cliquer pour changer',
+  };
+
+  const ordered = [...sessionLaps].reverse();
+  let lastKey = null;
+  ordered.forEach(lap => {
+    const key = lap.sessionId || `${lap.sessionType}_${lap.sessionDay || ''}`;
+    if (key !== lastKey) {
+      const sep = document.createElement('tr');
+      sep.className = 'lap-separator';
+      sep.innerHTML = `<td colspan="7">${lap.sessionName || shortSessionName(lap.sessionType)}${lap.sessionDay ? ' · ' + new Date(lap.sessionDay).toLocaleDateString('fr-FR') : ''}</td>`;
+      tbody.appendChild(sep);
+      lastKey = key;
+    }
+
+    const included = isLapIncluded(lap);
+    const delta  = included && isFinite(bestLapTime) ? lap.lapTimeSec - bestLapTime : 0;
+    const isBest = included && delta === 0;
+    const status = lap.status || 'valid';
+    const tr     = document.createElement('tr');
+    tr.style.opacity = included ? '1' : '0.45';
+    const dotS = dotStyle[status] || dotStyle.valid;
+    const dotT = dotTip[status] || '';
+    tr.innerHTML = `
+      <td style="text-align:center;padding:6px 4px">
+        <span onclick="toggleLapStatus(${lap.lap})" title="${dotT}" style="display:inline-block;width:11px;height:11px;border-radius:50%;cursor:pointer;transition:transform .15s;${dotS}" onmouseover="this.style.transform='scale(1.35)'" onmouseout="this.style.transform='scale(1)'"></span>
+      </td>
+      <td class="lap-num">${lap.lap}</td>
+      <td class="${isBest?'best':''}" style="${!included?'text-decoration:line-through':''}">${formatTime(lap.lapTimeSec)} ${isBest?'<span class="badge badge-best">BEST</span>':''}</td>
+      <td style="color:${!included?'var(--text2)':delta>1.5?'var(--red2)':delta>0.5?'var(--amber)':'var(--green)'}">${!included?'—':isBest?'—':formatDelta(delta)}</td>
+      <td>${lap.fuelUsed>0?lap.fuelUsed.toFixed(2)+' L':'—'}</td>
+      <td>${lap.fuelLeft>0?lap.fuelLeft.toFixed(1)+' L':'—'}</td>
+      <td><span class="badge" style="background:var(--bg4);color:var(--text2)">${lap.sessionType||'Race'}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function toggleLapStatus(lapNum) {
+  const lap = sessionLaps.find(l => l.lap === lapNum);
+  if (!lap) return;
+  const cycle = { valid: 'manual_excluded', track_limits: 'manual_excluded', manual_excluded: 'valid', auto_outlier: 'valid' };
+  lap.status = cycle[lap.status] || 'valid';
+  recomputeOutliers();
+  // Ne pas écraser une exclusion manuelle
+  if (lap.status === 'valid' && sessionLaps.find(l=>l.lap===lapNum)?.status === 'valid') {
+    // Laisser recomputeOutliers décider si aberrant
+  }
+  recalcBestLap();
+  renderLapTable();
+  updateTele(lap);
+  updateLapChart();
+  if (currentStrategy) updateFuelBar(currentStrategy);
+}
+
+function updateTele(lap) {
+  document.getElementById('tLastLap').textContent = formatTime(lap.lapTimeSec);
+  document.getElementById('tBestLap').textContent = formatTime(bestLapTime);
+  const valid = sessionLaps.filter(isLapIncluded).filter(l => l.fuelUsed > 0);
+  if (valid.length > 0) {
+    const avg = valid.reduce((a,b)=>a+b.fuelUsed,0) / valid.length;
+    document.getElementById('tAvgFuel').textContent = avg.toFixed(2) + ' L';
+  }
+  if (lap.position) document.getElementById('tPosition').textContent = 'P' + lap.position;
+}
+
+function updateFuelGauge(remaining, capacity) {
+  const pct  = remaining / capacity;
+  const fill = document.getElementById('fuelGaugeFill');
+  fill.style.width      = Math.min(100, pct*100) + '%';
+  fill.style.background = pct<0.2?'var(--red)':pct<0.4?'var(--amber)':'var(--green2)';
+  document.getElementById('fuelRemaining').textContent = remaining.toFixed(1) + ' L';
+}
+
+function updateLapChart() {
+  const labels = sessionLaps.map(l => l.lap);
+  const data   = sessionLaps.map(l => parseFloat(l.lapTimeSec.toFixed(3)));
+  if (!lapChart) {
+    const ctx = document.getElementById('lapChart').getContext('2d');
+    lapChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets: [{ data, borderColor:'#e84040', backgroundColor:'rgba(232,64,64,0.08)',
+        borderWidth:1.5, pointRadius:2, pointBackgroundColor:'#e84040', fill:true, tension:0.3 }] },
+      options: {
+        responsive:true, maintainAspectRatio:false, animation:false,
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{label:c=>formatTime(c.raw)},
+          backgroundColor:'#1e2329', borderColor:'#2a3040', borderWidth:1, titleColor:'#a8b0bc', bodyColor:'#f0f2f5' }},
+        scales:{ x:{display:false}, y:{ display:true,
+          ticks:{color:'#5e6878',font:{family:'JetBrains Mono',size:9},callback:v=>formatTime(v)},
+          grid:{color:'rgba(255,255,255,0.05)'} } }
+      }
+    });
+  } else {
+    lapChart.data.labels = labels;
+    lapChart.data.datasets[0].data = data;
+    lapChart.update('none');
+  }
+}
+
+function clearSession() {
+  if (!confirm('Effacer tous les tours de cette session ?')) return;
+  sessionLaps = []; bestLapTime = Infinity;
+  document.getElementById('lapTbody').innerHTML = '<tr><td colspan="6" class="empty-state">Aucun tour enregistré</td></tr>';
+  document.getElementById('lapCount').textContent = '0 tours';
+  ['tLastLap','tBestLap','tAvgFuel','fuelRemaining'].forEach(id => document.getElementById(id).textContent='—');
+  document.getElementById('fuelGaugeFill').style.width = '0%';
+  if (lapChart) { lapChart.data.labels=[]; lapChart.data.datasets[0].data=[]; lapChart.update(); }
+}
+
+// ═══════════════════════════════════════════════════
+//  HISTORIQUE
+// ═══════════════════════════════════════════════════
+function renderHistStats(s) {
+  // s peut venir du serveur (snake_case) ou localStorage (camelCase)
+  const total   = s.total_laps   ?? s.total ?? 0;
+  const valid   = s.valid_laps ?? total;
+  const excl    = s.excluded_laps ?? 0;
+  const best    = s.best_lap_sec ?? s.best;
+  const avgTime = s.avg_lap_time_sec ?? s.avgTime;
+  const avgFuel = s.avg_fuel_per_lap ?? s.avgFuel;
+  const minFuel = s.min_fuel_per_lap ?? s.minFuel;
+  const maxFuel = s.max_fuel_per_lap ?? s.maxFuel;
+  const pos     = s.last_position ? 'P' + s.last_position : '—';
+
+  if (!total && !valid) return;
+  document.getElementById('histGrid').innerHTML = `
+    <div class="hist-row"><span class="hist-row-label">Tours valides</span><span class="hist-row-value">${valid} / ${total}</span></div>
+    <div class="hist-row"><span class="hist-row-label">Exclus</span><span class="hist-row-value">${excl}</span></div>
+    <div class="hist-row"><span class="hist-row-label">Position</span><span class="hist-row-value" style="color:var(--green)">${pos}</span></div>
+    <div class="hist-row"><span class="hist-row-label">Meilleur</span><span class="hist-row-value" style="color:var(--green)">${formatTime(best)}</span></div>
+    <div class="hist-row"><span class="hist-row-label">Temps moy.</span><span class="hist-row-value">${formatTime(avgTime)}</span></div>
+    <div class="hist-row"><span class="hist-row-label">Conso moy.</span><span class="hist-row-value">${avgFuel ? parseFloat(avgFuel).toFixed(3) + ' L' : '—'}</span></div>
+    <div class="hist-row"><span class="hist-row-label">Conso min/max</span><span class="hist-row-value">${minFuel ? parseFloat(minFuel).toFixed(2) : '—'} / ${maxFuel ? parseFloat(maxFuel).toFixed(2) : '—'}</span></div>
+  `;
+  if (avgTime) document.getElementById('lapTime').value = formatTime(avgTime);
+  if (avgFuel) document.getElementById('fuelPerLap').value = parseFloat(avgFuel).toFixed(2);
+}
+
+function renderSavedCombos(entries) {
+  const el = document.getElementById('savedCombos');
+  if (!el) return;
+  if (!entries || !entries.length) {
+    el.innerHTML = '<div style="text-align:center;padding:14px;color:var(--text2);font-family:var(--cond);font-size:11px;letter-spacing:0.1em;">AUCUNE DONNÉE</div>';
+    return;
+  }
+
+  const grouped = groupStats(entries);
+  el.innerHTML = '';
+  Object.keys(grouped).sort().forEach(track => {
+    const trackTitle = document.createElement('div');
+    trackTitle.className = 'stats-group-title';
+    trackTitle.textContent = track;
+    el.appendChild(trackTitle);
+
+    Object.keys(grouped[track]).sort().forEach(car => {
+      const sessions = Object.values(grouped[track][car]).flat();
+      const stats = aggregateSessionEntries(sessions);
+      const div = document.createElement('div');
+      div.className = 'car-entry';
+      div.innerHTML = `
+        <div>
+          <div class="car-entry-name">${car}</div>
+          <div class="car-entry-sub">${stats.total_sessions} session${stats.total_sessions>1?'s':''}</div>
+        </div>
+        <div class="car-entry-badge">${stats.total_laps}T</div>
+      `;
+      div.onclick = () => {
+        document.getElementById('carName').value = car;
+        document.getElementById('trackName').value = track;
+        document.querySelectorAll('.car-entry').forEach(e=>e.classList.remove('selected'));
+        div.classList.add('selected');
+      };
+      el.appendChild(div);
+    });
+  });
+}
+
+
+
+
+// ═══════════════════════════════════════════════════
+//  PAGE STATISTIQUES
+// ═══════════════════════════════════════════════════
+function showPage(page) {
+  document.getElementById('strategyPage').classList.toggle('hidden', page !== 'strategy');
+  document.getElementById('statsPage').classList.toggle('hidden', page !== 'stats');
+  document.getElementById('tabStrategy').classList.toggle('active', page === 'strategy');
+  document.getElementById('tabStats').classList.toggle('active', page === 'stats');
+  if (page === 'stats') renderStatsList(allStatsData);
+}
+
+function renderStatsList(entries) {
+  const el = document.getElementById('statsList');
+  if (!el) return;
+  if (!entries || !entries.length) {
+    el.innerHTML = '<div class="empty-state">Aucune donnée sauvegardée</div>';
+    document.getElementById('statsEntryCount').textContent = '0';
+    return;
+  }
+
+  const grouped = groupStats(entries);
+  const tracks = Object.keys(grouped).sort();
+  document.getElementById('statsEntryCount').textContent = tracks.length;
+  el.innerHTML = '';
+
+  tracks.forEach(track => {
+    const trackBox = document.createElement('div');
+    trackBox.className = 'stats-day-block';
+    const cars = grouped[track];
+    trackBox.innerHTML = `<div class="stats-group-title">${track}</div><div class="stats-group-sub">${Object.keys(cars).length} voiture${Object.keys(cars).length>1?'s':''}</div>`;
+
+    Object.keys(cars).sort().forEach(car => {
+      const carSessions = Object.values(cars[car]).flat();
+      const carStats = aggregateSessionEntries(carSessions);
+      const carTitle = document.createElement('div');
+      carTitle.className = 'stats-group-title';
+      carTitle.style.paddingLeft = '16px';
+      carTitle.textContent = car;
+      trackBox.appendChild(carTitle);
+      const carSub = document.createElement('div');
+      carSub.className = 'stats-group-sub';
+      carSub.style.paddingLeft = '16px';
+      carSub.textContent = `${carStats.total_sessions} sessions · ${carStats.total_laps} tours valides`;
+      trackBox.appendChild(carSub);
+
+      const days = cars[car];
+      Object.keys(days).sort((a,b)=>b.localeCompare(a)).forEach(day => {
+        const daySessions = days[day].slice().sort((a,b)=>(a.start_time || '').localeCompare(b.start_time || ''));
+        const dayStats = aggregateSessionEntries(daySessions);
+        const dayTitle = document.createElement('div');
+        dayTitle.className = 'stats-day-title';
+        dayTitle.textContent = day === 'date_inconnue' ? 'Date inconnue' : new Date(day).toLocaleDateString('fr-FR');
+        trackBox.appendChild(dayTitle);
+
+        const daySub = document.createElement('div');
+        daySub.className = 'stats-group-sub';
+        daySub.textContent = `${dayStats.total_sessions} sessions · ${dayStats.total_laps} tours valides`;
+        trackBox.appendChild(daySub);
+
+        daySessions.forEach(entry => {
+          const s = entry.stats || {};
+          const div = document.createElement('div');
+          div.className = 'stats-entry session-entry';
+          div.innerHTML = `<div class="stats-entry-title">${formatSessionDisplayName(entry)}</div>
+                           <div class="stats-entry-sub">${s.total_laps ?? 0} tours valides${entry.position ? ' · P'+entry.position : ''}</div>`;
+          div.onclick = () => {
+            selectStatsEntry(div);
+            renderStatsDetail({
+              session_id: entry.session_id,
+              session_name: entry.session_name,
+              session_type: entry.session_type,
+              session_index: entry.session_index,
+              session_day: entry.session_day,
+              start_time: entry.start_time,
+              car: entry.car,
+              track: entry.track,
+              laps: entry.laps || [],
+              stats: entry.stats || {},
+              position: entry.position,
+            });
+          };
+          trackBox.appendChild(div);
+        });
+      });
+    });
+
+    el.appendChild(trackBox);
+  });
+}
+
+
+let pendingStatsSessionId = null;
+function selectStatsEntry(node) {
+  document.querySelectorAll('.stats-entry.session-entry').forEach(e => e.classList.remove('selected'));
+  node.classList.add('selected');
+}
+
+
+function renderStatsDetail(data, _unused) {
+  const el = document.getElementById('statsDetail');
+  if (!el || !data) return;
+  const s = data.stats || {};
+  const laps = data.laps || data.sessions || [];
+  const title = `${data.track} · ${data.car}`;
+
+  el.innerHTML = `
+    <div style="margin-bottom:12px">
+      <div style="font-family:var(--cond);font-size:16px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">${title}</div>
+      <div style="font-size:11px;color:var(--text1);margin-top:3px;font-family:var(--cond);letter-spacing:.08em;text-transform:uppercase">${formatSessionDisplayName(data)} · ${formatSessionDate(data)}</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px">${laps.length} tours · les exclus ne comptent pas dans les moyennes</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+      <div class="stat-card"><div class="stat-card-label">Meilleur</div><div class="stat-card-value" style="color:var(--green)">${s.best_lap_sec?formatTime(s.best_lap_sec):'—'}</div></div>
+      <div class="stat-card"><div class="stat-card-label">Temps moy.</div><div class="stat-card-value">${s.avg_lap_time_sec?formatTime(s.avg_lap_time_sec):'—'}</div></div>
+      <div class="stat-card"><div class="stat-card-label">Conso moy.</div><div class="stat-card-value">${s.avg_fuel_per_lap?Number(s.avg_fuel_per_lap).toFixed(3)+' L':'—'}</div></div>
+    </div>
+    <div class="lap-table-wrap">
+      <table>
+        <thead><tr><th>État</th><th>#</th><th>Temps</th><th>Conso</th><th>Fuel</th><th>Type</th></tr></thead>
+        <tbody id="statsLapBody">
+          ${laps.length ? laps.map((l,i)=>statsLapRow(data.car,data.track,l,i)).join('') : '<tr><td colspan="6" class="empty-state">Aucun tour</td></tr>'}
+        </tbody>
+      </table>
+      <div style="display:flex;align-items:center;gap:14px;padding:7px 12px;background:var(--bg3);border-top:1px solid var(--line);font-size:10px;color:var(--text2);font-family:var(--cond);letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2ecc8a"></span>Valide</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f5a623"></span>Limites de piste</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#e84040"></span>Exclu manuellement</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#555"></span>Exclu auto</span>
+      </div>
+    </div>
+  `;
+}
+
+// Cache des statuts modifiés en page stats (car/track/index → status)
+const statsStatusOverrides = {};
+
+function statsLapRow(car, track, lap, idx) {
+  const overrideKey = `${car}__${track}__${idx}`;
+  const status = statsStatusOverrides[overrideKey] || lap.status || 'valid';
+  const incl = status === 'valid' || status === 'track_limits';
+  const dotColors = {valid:'#2ecc8a',track_limits:'#f5a623',manual_excluded:'#e84040',auto_outlier:'#555'};
+  const dotColor = dotColors[status] || '#2ecc8a';
+  const dotTips = {valid:'Valide',track_limits:'Limites de piste',manual_excluded:'Exclu manuellement',auto_outlier:'Exclu auto (aberrant)'};
+  return `
+    <tr style="opacity:${incl?'1':'.45'}">
+      <td style="text-align:center;padding:6px 4px">
+        <span onclick="cycleStatsLapStatus('${car}','${track}',${idx},'${lap.lap_id||''}')"
+          title="${dotTips[status]||status} — cliquer pour changer"
+          style="display:inline-block;width:11px;height:11px;border-radius:50%;cursor:pointer;background:${dotColor};transition:transform .15s"
+          onmouseover="this.style.transform='scale(1.35)'" onmouseout="this.style.transform='scale(1)'"></span>
+      </td>
+      <td class="lap-num">${lap.lap_number??idx+1}</td>
+      <td style="${!incl?'text-decoration:line-through':''}">${lap.lap_time_sec?formatTime(lap.lap_time_sec):'—'}</td>
+      <td>${lap.fuel_used?Number(lap.fuel_used).toFixed(2)+' L':'—'}</td>
+      <td>${lap.fuel_remaining?Number(lap.fuel_remaining).toFixed(1)+' L':'—'}</td>
+      <td><span class="badge" style="background:var(--bg4);color:var(--text2)">${lap.session_type||'Race'}</span></td>
+    </tr>`;
+}
+
+function cycleStatsLapStatus(car, track, idx, lapId) {
+  const key = `${car}__${track}__${idx}`;
+  const cur = statsStatusOverrides[key] || 'valid';
+  const order = ['valid','track_limits','manual_excluded','auto_outlier'];
+  const next = order[(order.indexOf(cur)+1) % order.length];
+  statsStatusOverrides[key] = next;
+  // Persister via serveur si connecté
+  if (lapId) wsSend({type:'update_lap_status',car,track,lap_id:lapId,status:next});
+  // Rafraîchir la ligne
+  if (statsDetailData) renderStatsDetail(statsDetailData, null);
+}
+
+function updateStoredLapStatus(car, track, lapId, status) {
+  wsSend({ type: 'update_lap_status', car, track, lap_id: lapId, status });
+  flash('Statut du tour mis à jour.');
+}
+
+// ═══════════════════════════════════════════════════
+//  NOTIFICATIONS TOAST
+// ═══════════════════════════════════════════════════
+function flash(msg) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--line2);color:var(--amber);font-family:var(--cond);font-size:13px;letter-spacing:0.06em;padding:10px 20px;border-radius:6px;z-index:999;transition:opacity 0.3s;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.style.opacity='0', 3000);
+}
+
+// ═══════════════════════════════════════════════════
+//  TANK SYNC + KEYBOARD
+// ═══════════════════════════════════════════════════
+document.getElementById('sessionType').addEventListener('change', () => {
+  manualSessionTypeLocked = true;
+  refreshSessionButtons();
+  wsSend({ type: 'set_session_type', session_type: document.getElementById('sessionType').value, force_new_session: true });
+});
+
+document.getElementById('tankCapacity').addEventListener('input', () => {
+  const v = parseFloat(document.getElementById('tankCapacity').value) || 120;
+  document.getElementById('fuelGaugeMax').textContent = v + ' L';
+  document.getElementById('fuelCapLabel').textContent = '/ ' + v + ' L';
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement.closest('.sidebar')) calculateStrategy();
+  if (e.key === 'Escape') closeModal();
+});
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+refreshSessionButtons();
+wsConnect();
+</script>
+</body>
+</html>
