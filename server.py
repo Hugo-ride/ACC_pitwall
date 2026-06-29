@@ -20,7 +20,7 @@ from datetime import datetime
 from pathlib import Path
 
 try:
-    import websockets
+    import websockets  # type: ignore
 except ImportError:
     print("=" * 55)
     print("  Installation requise :")
