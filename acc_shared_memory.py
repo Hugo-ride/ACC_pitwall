@@ -309,6 +309,20 @@ class ACCSharedMemoryReader:
             }
             status_names = {0: "OFF", 1: "Replay", 2: "Live", 3: "Pause"}
 
+            def _clean_lap_ms(value):
+                try:
+                    value = int(value)
+                except Exception:
+                    return 0
+                # Valeurs invalides fréquentes : 2147483647 ms / -1 / 0.
+                # On garde seulement des temps de tour crédibles.
+                if value <= 0 or value >= 3600 * 1000:
+                    return 0
+                return value
+
+            last_lap_ms = _clean_lap_ms(graph.iLastTime)
+            best_lap_ms = _clean_lap_ms(graph.iBestTime)
+
             return {
                 # Identification
                 "car":               stat.carModel.strip() or "Unknown",
@@ -319,10 +333,10 @@ class ACCSharedMemoryReader:
                 # Tour
                 "completed_laps":    graph.completedLaps,
                 "current_lap_ms":    graph.iCurrentTime,
-                "last_lap_ms":       graph.iLastTime,
-                "best_lap_ms":       graph.iBestTime,
-                "last_lap_sec":      graph.iLastTime / 1000.0 if graph.iLastTime > 0 else 0,
-                "best_lap_sec":      graph.iBestTime / 1000.0 if graph.iBestTime > 0 else 0,
+                "last_lap_ms":       last_lap_ms,
+                "best_lap_ms":       best_lap_ms,
+                "last_lap_sec":      last_lap_ms / 1000.0 if last_lap_ms > 0 else 0,
+                "best_lap_sec":      best_lap_ms / 1000.0 if best_lap_ms > 0 else 0,
                 # Carburant
                 "fuel_remaining":    round(phys.fuel, 2),
                 "fuel_per_lap":      round(graph.fuelXLap, 3),

@@ -24,7 +24,7 @@ if errorlevel 1 (
 
 echo [1/4] Installation des dependances...
 python -m pip install --upgrade pip >nul
-python -m pip install --upgrade pyinstaller websockets pillow
+python -m pip install --upgrade pyinstaller websockets pywebview
 if errorlevel 1 (
     echo.
     echo [ERREUR] Impossible d'installer les dependances.

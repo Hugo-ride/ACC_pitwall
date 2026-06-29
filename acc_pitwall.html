@@ -566,7 +566,48 @@
     padding: 6px 14px !important;
     border-top: 1px solid var(--line2);
     border-bottom: 1px solid var(--line);
+    position: relative;
   }
+  .merge-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: 1px solid var(--line2);
+    color: var(--text2);
+    font-family: var(--cond);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .merge-btn:hover { border-color: var(--amber); color: var(--amber); background: rgba(245,166,35,.08); }
+  .stats-merge-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: 1px solid var(--line2);
+    color: var(--text2);
+    font-family: var(--cond);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    opacity: 0;
+    transition: all .15s;
+  }
+  .stats-entry:hover .stats-merge-btn { opacity: 1; }
+  .stats-merge-btn:hover { border-color: var(--amber); color: var(--amber); background: rgba(245,166,35,.08); }
   .stats-group-title {
     font-family: var(--cond);
     font-size: 13px;
@@ -600,6 +641,61 @@
     padding: 6px;
     margin-bottom: 8px;
   }
+
+
+  .stats-collapsible {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .stats-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text0);
+    cursor: pointer;
+    text-align: left;
+  }
+  .stats-toggle:hover { background: var(--bg3); }
+  .stats-toggle-main { min-width: 0; }
+  .stats-toggle-title {
+    font-family: var(--cond);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--text0);
+  }
+  .stats-toggle-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text2);
+    margin-top: 3px;
+  }
+  .stats-chevron {
+    color: var(--text2);
+    font-size: 13px;
+    transition: transform .15s ease;
+  }
+  .stats-collapsible.closed > .stats-toggle .stats-chevron {
+    transform: rotate(-90deg);
+  }
+  .stats-children {
+    padding: 0 8px 8px 8px;
+  }
+  .stats-collapsible.closed > .stats-children {
+    display: none;
+  }
+  .stats-collapsible.car-level { margin-left: 10px; background: var(--bg1); }
+  .stats-collapsible.day-level { margin-left: 18px; background: var(--bg2); }
+  .stats-collapsible.day-level .stats-toggle-title { color: var(--amber); }
 
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; }
@@ -1003,7 +1099,7 @@
 // ═══════════════════════════════════════════════════
 //  WEBSOCKET — connexion au serveur Python
 // ═══════════════════════════════════════════════════
-const WS_URL = 'ws://localhost:8765';
+const WS_URL = 'ws://127.0.0.1:8765';
 let ws = null;
 let wsReconnectTimer = null;
 let hasLiveData = false;
@@ -1020,10 +1116,11 @@ function wsConnect() {
   ws.onclose = () => {
     setServerStatus('offline');
     // Reconnexion automatique toutes les 3s
-    wsReconnectTimer = setTimeout(wsConnect, 3000);
+    wsReconnectTimer = setTimeout(wsConnect, 1500);
   };
 
-  ws.onerror = () => {
+  ws.onerror = (err) => {
+    console.error('Erreur WebSocket ACC Pit Wall', err, WS_URL);
     setServerStatus('offline');
   };
 
@@ -1095,7 +1192,7 @@ function handleServerMessage(msg) {
       if (msg.hist_data) renderStatsDetail(msg.hist_data, null);
 
       const s = msg.hist_stats;
-      if (s && s.valid_laps) {
+      if (s && (s.valid_laps || s.total_laps)) {
         document.getElementById('lapTime').value    = formatTime(s.avg_lap_time_sec);
         document.getElementById('fuelPerLap').value = Number(s.avg_fuel_per_lap).toFixed(2);
         renderHistStats(s);
@@ -1117,6 +1214,24 @@ function handleServerMessage(msg) {
         document.getElementById('tTimeLeft').textContent = `${m}:${String(s).padStart(2,'0')}`;
       }
       if (d.position && d.position > 0) document.getElementById('tPosition').textContent = 'P' + d.position;
+
+      // Les données live s'affichent dans le panneau télémétrie uniquement.
+      // Les champs stratégie (lapTime, fuelPerLap) sont gérés par renderHistStats.
+      if (isReasonableLapTime(d.last_lap_sec)) {
+        document.getElementById('tLastLap').textContent = formatTime(d.last_lap_sec);
+      }
+      if (isReasonableLapTime(d.best_lap_sec)) {
+        document.getElementById('tBestLap').textContent = formatTime(d.best_lap_sec);
+      }
+      if (d.fuel_per_lap && d.fuel_per_lap > 0) {
+        document.getElementById('tAvgFuel').textContent = Number(d.fuel_per_lap).toFixed(2) + ' L';
+      }
+      if (d.car) document.getElementById('carName').value = d.car;
+      if (d.track) document.getElementById('trackName').value = d.track;
+      if (d.car && d.track) {
+        document.getElementById('sessionInfo').textContent = d.car.toUpperCase() + ' — ' + d.track.toUpperCase();
+      }
+
       if (d.session_type && !manualSessionTypeLocked) {
         document.getElementById('sessionType').value = d.session_type;
         refreshSessionButtons();
@@ -1129,6 +1244,10 @@ function handleServerMessage(msg) {
       setServerStatus('data');
       // Nouveau tour enregistré par le serveur
       const l = msg.lap;
+      if (!isReasonableLapTime(l.lap_time_sec)) {
+        console.warn('Tour ignoré car temps ACC invalide', l);
+        break;
+      }
       pushLap({
         lapTimeSec:   l.lap_time_sec,
         fuelUsed:     l.fuel_used,
@@ -1231,13 +1350,14 @@ function aggregateSessionEntries(entries) {
   return { total_sessions: sessions, total_laps: total };
 }
 function formatSessionDisplayName(entry) {
-  if (entry.session_name) return entry.session_name;
-  const i = entry.session_index || '';
-  if (entry.session_type === 'Race') return `Course ${i}`.trim();
-  if (entry.session_type === 'Qualifying') return `Qualifications ${i}`.trim();
-  if (entry.session_type === 'Practice') return `Essais libres ${i}`.trim();
-  return entry.session_type || 'Session';
+  const idx = entry.session_index || '';
+  if (entry.session_name && /\d+/.test(entry.session_name)) return entry.session_name;
+  if (entry.session_type === 'Race') return `Course ${idx}`.trim();
+  if (entry.session_type === 'Qualifying') return `Qualifications ${idx}`.trim();
+  if (entry.session_type === 'Practice') return `Essais libres ${idx}`.trim();
+  return entry.session_name || entry.session_type || 'Session';
 }
+
 function formatSessionDate(entry) {
   const d = sessionDay(entry);
   return d === 'date_inconnue' ? 'Date inconnue' : new Date(d).toLocaleDateString('fr-FR');
@@ -1255,8 +1375,16 @@ function parseTime(str) {
   return parseFloat(str);
 }
 
+function isReasonableLapTime(sec) {
+  sec = Number(sec);
+  // ACC peut renvoyer 2147483647 ms quand il n'y a pas encore de vrai tour.
+  // On évite donc d'afficher des temps du type 35791:23.647.
+  return Number.isFinite(sec) && sec > 20 && sec < 3600;
+}
+
 function formatTime(sec) {
-  if (!sec || isNaN(sec)) return '—';
+  sec = Number(sec);
+  if (!isReasonableLapTime(sec)) return '—';
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return `${m}:${s.toFixed(3).padStart(6,'0')}`;
@@ -1484,12 +1612,23 @@ function renderLapTable() {
 
   const ordered = [...sessionLaps].reverse();
   let lastKey = null;
+  const sessionOrder = [];
+  ordered.forEach(lap => {
+    const key = lap.sessionId || `${lap.sessionType}_${lap.sessionDay || ''}`;
+    if (key !== sessionOrder[sessionOrder.length - 1]) sessionOrder.push(key);
+  });
+
   ordered.forEach(lap => {
     const key = lap.sessionId || `${lap.sessionType}_${lap.sessionDay || ''}`;
     if (key !== lastKey) {
       const sep = document.createElement('tr');
       sep.className = 'lap-separator';
-      sep.innerHTML = `<td colspan="7">${lap.sessionName || shortSessionName(lap.sessionType)}${lap.sessionDay ? ' · ' + new Date(lap.sessionDay).toLocaleDateString('fr-FR') : ''}</td>`;
+      const groupIdx = sessionOrder.indexOf(key);
+      const prevKey  = groupIdx > 0 ? sessionOrder[groupIdx - 1] : null;
+      const mergeBtn = prevKey
+        ? `<button class="merge-btn" onclick="mergeSessions('${lap.sessionId}','${prevKey}')" title="Fusionner avec la session précédente">↑ MÊME COURSE</button>`
+        : '';
+      sep.innerHTML = `<td colspan="7" style="position:relative">${lap.sessionName || shortSessionName(lap.sessionType)}${lap.sessionDay ? ' · ' + new Date(lap.sessionDay).toLocaleDateString('fr-FR') : ''}${mergeBtn}</td>`;
       tbody.appendChild(sep);
       lastKey = key;
     }
@@ -1534,6 +1673,28 @@ function toggleLapStatus(lapNum) {
   if (currentStrategy) updateFuelBar(currentStrategy);
 }
 
+function mergeSessions(sessionMerge, sessionKeep) {
+  if (!confirm('Fusionner ces deux sessions en une seule course ?\nCette action est irréversible.')) return;
+  const car   = document.getElementById('carName').value.trim();
+  const track = document.getElementById('trackName').value.trim();
+  const keepLap = sessionLaps.find(l => l.sessionId === sessionKeep);
+  sessionLaps.forEach(lap => {
+    if (lap.sessionId === sessionMerge) {
+      lap.sessionId   = sessionKeep;
+      lap.sessionName = keepLap ? keepLap.sessionName : lap.sessionName;
+    }
+  });
+  renderLapTable();
+  wsSend({ type: 'merge_sessions', car, track, session_keep: sessionKeep, session_merge: sessionMerge });
+  flash('Sessions fusionnées.');
+}
+
+function mergeStatsSession(car, track, sessionKeep, sessionMerge) {
+  if (!confirm('Fusionner ces deux sessions en une seule course ?\nCette action est irréversible.')) return;
+  wsSend({ type: 'merge_sessions', car, track, session_keep: sessionKeep, session_merge: sessionMerge });
+  flash('Fusion en cours…');
+}
+
 function updateTele(lap) {
   document.getElementById('tLastLap').textContent = formatTime(lap.lapTimeSec);
   document.getElementById('tBestLap').textContent = formatTime(bestLapTime);
@@ -1554,8 +1715,9 @@ function updateFuelGauge(remaining, capacity) {
 }
 
 function updateLapChart() {
-  const labels = sessionLaps.map(l => l.lap);
-  const data   = sessionLaps.map(l => parseFloat(l.lapTimeSec.toFixed(3)));
+  const chartLaps = sessionLaps.filter(l => isReasonableLapTime(l.lapTimeSec));
+  const labels = chartLaps.map(l => l.lap);
+  const data   = chartLaps.map(l => parseFloat(l.lapTimeSec.toFixed(3)));
   if (!lapChart) {
     const ctx = document.getElementById('lapChart').getContext('2d');
     lapChart = new Chart(ctx, {
@@ -1615,6 +1777,29 @@ function renderHistStats(s) {
   `;
   if (avgTime) document.getElementById('lapTime').value = formatTime(avgTime);
   if (avgFuel) document.getElementById('fuelPerLap').value = parseFloat(avgFuel).toFixed(2);
+}
+
+
+function toggleStatsBlock(button) {
+  const box = button.closest('.stats-collapsible');
+  if (!box) return;
+  box.classList.toggle('closed');
+}
+
+function makeStatsBlock(title, subtitle, levelClass='', startClosed=false) {
+  const box = document.createElement('div');
+  box.className = `stats-collapsible ${levelClass}${startClosed ? ' closed' : ''}`;
+  box.innerHTML = `
+    <button class="stats-toggle" type="button" onclick="toggleStatsBlock(this)">
+      <div class="stats-toggle-main">
+        <div class="stats-toggle-title">${title}</div>
+        <div class="stats-toggle-sub">${subtitle}</div>
+      </div>
+      <div class="stats-chevron">▼</div>
+    </button>
+    <div class="stats-children"></div>
+  `;
+  return box;
 }
 
 function renderSavedCombos(entries) {
@@ -1685,45 +1870,53 @@ function renderStatsList(entries) {
   el.innerHTML = '';
 
   tracks.forEach(track => {
-    const trackBox = document.createElement('div');
-    trackBox.className = 'stats-day-block';
     const cars = grouped[track];
-    trackBox.innerHTML = `<div class="stats-group-title">${track}</div><div class="stats-group-sub">${Object.keys(cars).length} voiture${Object.keys(cars).length>1?'s':''}</div>`;
+    const trackSessions = Object.values(cars).flatMap(days => Object.values(days).flat());
+    const trackStats = aggregateSessionEntries(trackSessions);
+    const trackBox = makeStatsBlock(
+      track,
+      `${Object.keys(cars).length} voiture${Object.keys(cars).length>1?'s':''} · ${trackStats.total_sessions} sessions`,
+      'track-level',
+      false
+    );
+    const trackChildren = trackBox.querySelector('.stats-children');
 
     Object.keys(cars).sort().forEach(car => {
-      const carSessions = Object.values(cars[car]).flat();
-      const carStats = aggregateSessionEntries(carSessions);
-      const carTitle = document.createElement('div');
-      carTitle.className = 'stats-group-title';
-      carTitle.style.paddingLeft = '16px';
-      carTitle.textContent = car;
-      trackBox.appendChild(carTitle);
-      const carSub = document.createElement('div');
-      carSub.className = 'stats-group-sub';
-      carSub.style.paddingLeft = '16px';
-      carSub.textContent = `${carStats.total_sessions} sessions · ${carStats.total_laps} tours valides`;
-      trackBox.appendChild(carSub);
-
       const days = cars[car];
+      const carSessions = Object.values(days).flat();
+      const carStats = aggregateSessionEntries(carSessions);
+      const carBox = makeStatsBlock(
+        car,
+        `${carStats.total_sessions} sessions · ${carStats.total_laps} tours valides`,
+        'car-level',
+        false
+      );
+      const carChildren = carBox.querySelector('.stats-children');
+
       Object.keys(days).sort((a,b)=>b.localeCompare(a)).forEach(day => {
         const daySessions = days[day].slice().sort((a,b)=>(a.start_time || '').localeCompare(b.start_time || ''));
         const dayStats = aggregateSessionEntries(daySessions);
-        const dayTitle = document.createElement('div');
-        dayTitle.className = 'stats-day-title';
-        dayTitle.textContent = day === 'date_inconnue' ? 'Date inconnue' : new Date(day).toLocaleDateString('fr-FR');
-        trackBox.appendChild(dayTitle);
+        const dateLabel = day === 'date_inconnue' ? 'Date inconnue' : new Date(day).toLocaleDateString('fr-FR');
+        const dayBox = makeStatsBlock(
+          dateLabel,
+          `${dayStats.total_sessions} sessions · ${dayStats.total_laps} tours valides`,
+          'day-level',
+          false
+        );
+        const dayChildren = dayBox.querySelector('.stats-children');
 
-        const daySub = document.createElement('div');
-        daySub.className = 'stats-group-sub';
-        daySub.textContent = `${dayStats.total_sessions} sessions · ${dayStats.total_laps} tours valides`;
-        trackBox.appendChild(daySub);
-
-        daySessions.forEach(entry => {
+        daySessions.forEach((entry, entryIdx) => {
           const s = entry.stats || {};
           const div = document.createElement('div');
           div.className = 'stats-entry session-entry';
+          div.style.position = 'relative';
+          const prevEntry = entryIdx > 0 ? daySessions[entryIdx - 1] : null;
+          const mergeBtnHtml = prevEntry
+            ? `<button class="stats-merge-btn" onclick="event.stopPropagation();mergeStatsSession('${entry.car}','${entry.track}','${prevEntry.session_id}','${entry.session_id}')" title="Fusionner avec la session précédente">↑ MÊME COURSE</button>`
+            : '';
           div.innerHTML = `<div class="stats-entry-title">${formatSessionDisplayName(entry)}</div>
-                           <div class="stats-entry-sub">${s.total_laps ?? 0} tours valides${entry.position ? ' · P'+entry.position : ''}</div>`;
+                           <div class="stats-entry-sub">${s.total_laps ?? 0} tours valides${entry.position ? ' · P'+entry.position : ''}</div>
+                           ${mergeBtnHtml}`;
           div.onclick = () => {
             selectStatsEntry(div);
             renderStatsDetail({
@@ -1740,9 +1933,13 @@ function renderStatsList(entries) {
               position: entry.position,
             });
           };
-          trackBox.appendChild(div);
+          dayChildren.appendChild(div);
         });
+
+        carChildren.appendChild(dayBox);
       });
+
+      trackChildren.appendChild(carBox);
     });
 
     el.appendChild(trackBox);

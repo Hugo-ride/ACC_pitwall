@@ -1,25 +1,22 @@
 # -*- mode: python ; coding: utf-8 -*-
-# ACC Pit Wall - PyInstaller spec
-# Pour compiler : double-cliquer sur BUILD.bat
+# ACC Pit Wall - PyInstaller spec (pywebview)
 
 import os
 
 block_cipher = None
-
 BASE_DIR = os.path.abspath(os.getcwd())
 
 def p(name):
     return os.path.join(BASE_DIR, name)
 
-# Fichiers a inclure dans le .exe
 datas = []
+
 required_files = [
     "acc_pitwall.html",
     "app_icon.ico",
     "app_icon_512.png",
     "server.py",
     "acc_shared_memory.py",
-    "fuel_calculator.py",
 ]
 
 for filename in required_files:
@@ -29,14 +26,14 @@ for filename in required_files:
     else:
         print(f"ATTENTION : fichier manquant ignore : {filename}")
 
-# Dossier optionnel des images circuits : on l'ajoute seulement s'il existe.
 circuits_dir = p("carte_circuits")
 if os.path.isdir(circuits_dir):
     datas.append((circuits_dir, "carte_circuits"))
-else:
-    print("INFO : dossier optionnel carte_circuits absent, compilation sans images circuits.")
 
 hiddenimports = [
+    "server",
+    "acc_shared_memory",
+
     "websockets",
     "websockets.legacy",
     "websockets.legacy.server",
@@ -44,19 +41,22 @@ hiddenimports = [
     "websockets.server",
     "websockets.client",
     "websockets.exceptions",
-    "websockets.frames",
-    "websockets.http11",
-    "websockets.protocol",
+
+    "webview",
+    "webview.platforms",
+    "webview.platforms.winforms",
+    "webview.js",
+    "webview.js.css",
+    "webview.js.dom",
+
+    "clr",
+    "System",
+    "System.Windows.Forms",
+
     "asyncio",
     "ctypes",
     "ctypes.wintypes",
     "mmap",
-    "tkinter",
-    "tkinter.ttk",
-    "tkinter.messagebox",
-    "PIL",
-    "PIL.Image",
-    "PIL.ImageTk",
     "json",
     "math",
     "pathlib",
@@ -71,7 +71,8 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=["matplotlib", "numpy", "scipy", "pandas", "PyQt5", "wx"],
+    excludes=["matplotlib", "numpy", "scipy", "pandas", "PyQt5", "wx", "pygame",
+              "tkinter", "PIL"],
     noarchive=False,
 )
 
@@ -87,7 +88,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,
@@ -96,6 +97,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=p("app_icon.ico") if os.path.exists(p("app_icon.ico")) else None,
-    version=p("version_info.txt") if os.path.exists(p("version_info.txt")) else None,
+    icon=p("app_icon.ico"),
+    version=None,
 )

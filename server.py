@@ -53,6 +53,15 @@ def get_data_file(car: str, track: str) -> Path:
     return DATA_DIR / f"{safe(car)}__{safe(track)}.json"
 
 
+def load_session_data(car: str, track: str) -> dict:
+    """Charge les données existantes pour une voiture/circuit."""
+    filepath = get_data_file(car, track)
+    if filepath.exists():
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {"car": car, "track": track, "sessions": [], "stats": {}}
+
+
 def _make_lap_id(lap: dict, index: int) -> str:
     ts = lap.get("timestamp") or datetime.now().isoformat()
     lap_no = lap.get("lap_number", index + 1)
@@ -231,6 +240,7 @@ def _session_display_name(session_type: str, index: int) -> str:
     return f"Session {index}"
 
 
+
 def _lap_number(lap: dict) -> int:
     try:
         return int(lap.get("lap_number", 0))
@@ -275,29 +285,98 @@ def _assign_session_metadata(data: dict, lap: dict, force_new_session: bool = Fa
     lap["session_day"] = day
 
 
+
+def _split_raw_session_groups(sessions: list[dict]) -> list[list[dict]]:
+    """
+    Découpe les tours en sessions logiques.
+    On garde les anciennes limites si session_id existe, sinon on découpe si :
+    - le type change,
+    - la date change,
+    - le compteur de tours repart à 1 ou baisse.
+    """
+    groups = []
+    cur = []
+    last = None
+
+    for lap in sessions:
+        if not cur:
+            cur = [lap]
+        else:
+            same_existing_session = (
+                lap.get("session_id")
+                and last
+                and last.get("session_id")
+                and lap.get("session_id") == last.get("session_id")
+            )
+            should_split = False
+            if not same_existing_session:
+                should_split = (
+                    lap.get("session_type") != last.get("session_type")
+                    or _session_day(lap) != _session_day(last)
+                    or _lap_number(lap) <= _lap_number(last)
+                )
+
+            if should_split:
+                groups.append(cur)
+                cur = [lap]
+            else:
+                cur.append(lap)
+        last = lap
+
+    if cur:
+        groups.append(cur)
+    return groups
+
+
+def _renumber_sessions_by_day(data: dict) -> None:
+    """
+    Renumérote toutes les sessions par JOUR et par TYPE.
+    Exemple :
+    29/05 : Course 1, Qualifications 1, Essais libres 1...
+    30/05 : Course 1, Qualifications 1...
+    """
+    sessions = data.setdefault("sessions", [])
+    raw_groups = _split_raw_session_groups(sessions)
+    counters = {}
+
+    for group in raw_groups:
+        if not group:
+            continue
+
+        first = group[0]
+        stype = first.get("session_type") or "Unknown"
+        kind = _session_kind(stype)
+        day = _session_day(first)
+        key = (day, kind)
+        counters[key] = counters.get(key, 0) + 1
+        index = counters[key]
+
+        session_id = f"{kind}_{day}_{index}"
+        session_name = _session_display_name(stype, index)
+
+        for lap in group:
+            lap["session_day"] = day
+            lap["session_id"] = session_id
+            lap["session_name"] = session_name
+            lap["session_index"] = index
+
+
 def normalize_all_sessions(data: dict) -> None:
     sessions = data.setdefault("sessions", [])
-    previous = None
+
     for i, lap in enumerate(sessions):
         _normalize_lap(lap, i)
         lap.setdefault("position", None)
+        lap["session_day"] = _session_day(lap)
         lap["is_counted"] = (
             lap.get("lap_time_sec", 0) > 0
             and lap.get("fuel_used", 0) > 0
             and lap.get("status", "valid") in INCLUDED_STATUSES
         )
-        if not lap.get("session_id"):
-            force = False
-            if previous:
-                force = (
-                    previous.get("session_type") != lap.get("session_type")
-                    or (previous.get("session_day") or _session_day(previous)) != _session_day(lap)
-                    or _lap_number(lap) <= _lap_number(previous)
-                )
-            _assign_session_metadata(data, lap, force_new_session=force)
-        else:
-            lap.setdefault("session_day", _session_day(lap))
-        previous = lap
+
+    # Très important : on renumérote même les anciennes données pour que
+    # chaque journée reparte bien à Course 1 / Qualifications 1 / etc.
+    _renumber_sessions_by_day(data)
 
     groups = {}
     for lap in sessions:
@@ -317,30 +396,27 @@ def normalize_all_sessions(data: dict) -> None:
         groups[sid]["laps"].append(lap)
         groups[sid]["end_time"] = lap.get("timestamp") or groups[sid]["end_time"]
 
+        pos = lap.get("position")
+        if pos is not None:
+            groups[sid]["position"] = pos
+            best = groups[sid].get("best_position")
+            if best is None or pos < best:
+                groups[sid]["best_position"] = pos
+
     data["session_groups"] = []
     for g in groups.values():
         stats = _compute_session_stats(g["laps"])
-        clean = {k:v for k,v in g.items() if k != "laps"}
-        clean["stats"] = stats
+        clean = dict(g)
+        clean.pop("laps", None)
         clean["lap_count"] = len(g["laps"])
         clean["valid_laps"] = stats.get("total_laps", 0)
         clean["excluded_laps"] = stats.get("excluded_laps", 0)
+        clean["stats"] = stats
         data["session_groups"].append(clean)
 
-
-def load_session_data(car: str, track: str) -> dict:
-    fp = get_data_file(car, track)
-    if fp.exists():
-        with open(fp, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    else:
-        data = {"car": car, "track": track, "sessions": [], "stats": {}}
-
-    data.setdefault("car", car)
-    data.setdefault("track", track)
-    data.setdefault("sessions", [])
-    _recompute_stats(data)
-    return data
+    data["session_groups"].sort(
+        key=lambda g: (g.get("session_day", ""), g.get("start_time") or "", g.get("session_type", ""), g.get("session_index", 0))
+    )
 
 
 def save_session_data(data: dict) -> None:
@@ -385,6 +461,28 @@ def update_lap_status(car: str, track: str, lap_id: str, status: str):
     return data, updated
 
 
+def merge_sessions(car: str, track: str, session_id_keep: str, session_id_merge: str):
+    """Fusionne session_id_merge dans session_id_keep."""
+    data = load_session_data(car, track)
+    sessions = data.get("sessions", [])
+    target = next((l for l in sessions if l.get("session_id") == session_id_keep), None)
+    if target is None:
+        raise ValueError(f"Session '{session_id_keep}' introuvable")
+    merged = 0
+    for lap in sessions:
+        if lap.get("session_id") == session_id_merge:
+            lap["session_id"]    = session_id_keep
+            lap["session_name"]  = target.get("session_name")
+            lap["session_index"] = target.get("session_index")
+            lap["session_day"]   = target.get("session_day")
+            merged += 1
+    if merged == 0:
+        raise ValueError(f"Session '{session_id_merge}' introuvable ou déjà fusionnée")
+    normalize_all_sessions(data)
+    save_session_data(data)
+    return data
+
+
 def update_session_type(car: str, track: str, session_type: str):
     data = load_session_data(car, track)
     for lap in data.get("sessions", []):
@@ -421,7 +519,7 @@ def load_all_stats() -> list:
 
 
 # ── SERVEUR ──────────────────────────────────────────────────────
-HOST = "localhost"
+HOST = "127.0.0.1"
 PORT = 8765
 
 
@@ -437,10 +535,19 @@ class ACCServer:
         self.connected = False
         self.session_type_override = None
         self._force_new_session = False
+        self._last_saved_lap_signature = None
+        self._last_seen_lap_signature = None
+
+        # Enregistrement robuste des tours :
+        # ACC peut mettre à jour completed_laps avant iLastTime/fuelXLap.
+        # On garde donc un tour "en attente" jusqu'à recevoir un chrono valide.
+        self._pending_lap_number = None
+        self._pending_lap_started_at = None
+        self._last_fuel_remaining = None
 
     async def register(self, ws):
         self.clients.add(ws)
-        print(f"  🔌  Client connecté ({len(self.clients)} actif(s))")
+        print(f"  🔌  Interface HTML connectée ({len(self.clients)} client(s))")
         await self.send(ws, {"type": "all_stats", "data": load_all_stats()})
 
     def unregister(self, ws):
@@ -531,6 +638,25 @@ class ACCServer:
                         "sessions": data.get("sessions", []),
                     })
                     await self.broadcast({"type": "all_stats", "data": load_all_stats()})
+            except Exception as e:
+                await self.send(ws, {"type": "error", "message": str(e)})
+
+        elif mtype == "merge_sessions":
+            try:
+                car           = msg.get("car",            self.current_car   or "")
+                track         = msg.get("track",          self.current_track or "")
+                session_keep  = msg.get("session_keep",  "")
+                session_merge = msg.get("session_merge", "")
+                data = merge_sessions(car, track, session_keep, session_merge)
+                await self.broadcast({
+                    "type":     "stats",
+                    "car":      car,
+                    "track":    track,
+                    "stats":    data.get("stats", {}),
+                    "sessions": data.get("sessions", []),
+                })
+                await self.broadcast({"type": "all_stats", "data": load_all_stats()})
+                print(f"  🔗  Sessions fusionnées : {session_merge} → {session_keep}")
             except Exception as e:
                 await self.send(ws, {"type": "error", "message": str(e)})
 
@@ -633,25 +759,82 @@ class ACCServer:
             snap["session_type"] = session_type
             await self.broadcast({"type": "telemetry", "data": snap})
 
-            laps = snap["completed_laps"]
+            laps = int(snap.get("completed_laps", 0) or 0)
+            lap_time = float(snap.get("last_lap_sec", 0) or 0)
+            fuel_used = float(snap.get("fuel_per_lap", 0) or 0)
+            fuel_remaining = float(snap.get("fuel_remaining", 0) or 0)
+
+            def _lap_time_ok(value: float) -> bool:
+                return 20 < value < 3600
+
+            # 1) Méthode normale : le compteur ACC augmente.
+            # On ne sauvegarde pas forcément tout de suite, car ACC peut mettre
+            # iLastTime/fuelXLap à jour quelques ticks après completed_laps.
             if laps > self.last_laps and self.last_laps >= 0:
-                lap_time = snap["last_lap_sec"]
-                fuel_used = snap["fuel_per_lap"]
-                if lap_time > 0:
+                self._pending_lap_number = laps
+                self._pending_lap_started_at = datetime.now().isoformat()
+                print(f"  🟡  Nouveau tour détecté par compteur ACC : {laps}, attente chrono valide...")
+
+            # 2) Fallback : si le chrono du dernier tour change, même sans compteur.
+            lap_signature = (
+                laps,
+                round(lap_time, 3),
+                session_type,
+                car,
+                track,
+            )
+            if (
+                _lap_time_ok(lap_time)
+                and lap_signature != self._last_seen_lap_signature
+                and lap_signature != self._last_saved_lap_signature
+            ):
+                self._pending_lap_number = laps if laps > 0 else len(self.session_laps) + 1
+                self._pending_lap_started_at = datetime.now().isoformat()
+
+            # Si on a un tour en attente et un chrono valide, on sauvegarde.
+            if self._pending_lap_number is not None and _lap_time_ok(lap_time):
+                lap_no = int(self._pending_lap_number)
+
+                # Si ACC ne donne pas fuelXLap, on tente une estimation avec la variation du carburant restant.
+                if fuel_used <= 0 and self._last_fuel_remaining is not None:
+                    delta_fuel = float(self._last_fuel_remaining) - fuel_remaining
+                    if 0 < delta_fuel < 15:
+                        fuel_used = delta_fuel
+
+                # On accepte quand même le tour si la conso est absente :
+                # il apparaîtra dans l'historique, mais ne comptera pas dans les moyennes carburant.
+                if fuel_used < 0:
+                    fuel_used = 0
+
+                save_signature = (
+                    lap_no,
+                    round(lap_time, 3),
+                    round(fuel_used, 3),
+                    session_type,
+                    car,
+                    track,
+                )
+
+                if save_signature != self._last_saved_lap_signature:
                     lap_data = {
-                        "lap_number": laps,
+                        "lap_number": lap_no,
                         "lap_time_sec": round(lap_time, 3),
                         "fuel_used": round(fuel_used, 3),
-                        "fuel_remaining": snap["fuel_remaining"],
+                        "fuel_remaining": fuel_remaining,
                         "session_type": session_type,
                         "tyre_compound": snap["tyre_compound"],
                         "air_temp": snap["air_temp"],
                         "road_temp": snap["road_temp"],
+                        "position": snap.get("position"),
                         "status": "valid",
                         "status_locked": False,
                     }
                     stats, saved_lap = save_lap(car, track, lap_data, force_new_session=self._force_new_session)
                     self._force_new_session = False
+                    self._last_saved_lap_signature = save_signature
+                    self._last_seen_lap_signature = lap_signature
+                    self._pending_lap_number = None
+                    self._pending_lap_started_at = None
                     self.session_laps.append(saved_lap)
 
                     await self.broadcast({
@@ -661,9 +844,10 @@ class ACCServer:
                         "session_laps": self.session_laps,
                     })
                     await self.broadcast({"type": "all_stats", "data": load_all_stats()})
-                    print(f"  ✅  Tour {laps} | {self._fmt(lap_time)} | {fuel_used:.2f} L | {LAP_STATUS.get(saved_lap.get('status'), 'Valide')}")
+                    print(f"  ✅  Tour {lap_no} enregistré | {self._fmt(lap_time)} | {fuel_used:.2f} L | {LAP_STATUS.get(saved_lap.get('status'), 'Valide')}")
 
-            self.last_laps = laps
+            self._last_fuel_remaining = fuel_remaining if fuel_remaining > 0 else self._last_fuel_remaining
+            self.last_laps = max(self.last_laps, laps)
 
         else:
             if self.connected:
@@ -672,6 +856,11 @@ class ACCServer:
                 self.current_track = None
                 self.session_laps = []
                 self.session_type_override = None
+                self._last_saved_lap_signature = None
+                self._last_seen_lap_signature = None
+                self._pending_lap_number = None
+                self._pending_lap_started_at = None
+                self._last_fuel_remaining = None
                 await self.broadcast({"type": "acc_status", "status": "offline"})
 
     def _fmt(self, sec):
@@ -696,6 +885,7 @@ class ACCServer:
         print("  🏁  ACC FUEL STRATEGY — Serveur")
         print("=" * 55)
         print(f"  WebSocket : ws://{HOST}:{PORT}")
+        print("  Mode      : intégré au launcher PyInstaller")
         print(f"  Données   : {DATA_DIR}")
         print("  Ouvrez acc_fuel_strategy.html dans votre navigateur")
         print("  Ctrl+C pour arrêter")
