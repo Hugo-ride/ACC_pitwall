@@ -323,6 +323,15 @@ class ACCSharedMemoryReader:
             last_lap_ms = _clean_lap_ms(graph.iLastTime)
             best_lap_ms = _clean_lap_ms(graph.iBestTime)
 
+            def _r(value, nd=2):
+                try:
+                    return round(float(value), nd)
+                except Exception:
+                    return 0.0
+
+            def _arr(values, nd=2):
+                return [_r(v, nd) for v in values]
+
             return {
                 # Identification
                 "car":               stat.carModel.strip() or "Unknown",
@@ -345,11 +354,96 @@ class ACCSharedMemoryReader:
                 "session_time_left_sec": round(graph.sessionTimeLeft / 1000.0, 1) if graph.sessionTimeLeft > 0 else 0,
                 "position":          graph.position,
                 "is_in_pit":         bool(graph.isInPit or graph.isInPitLane),
+                "completed_laps_total": graph.numberOfLaps,
+                "current_sector_index": graph.currentSectorIndex,
+                "last_sector_time_ms": int(graph.lastSectorTime),
+                "normalized_car_position": _r(graph.normalizedCarPosition, 4),
+                "active_cars": int(graph.activeCars),
+                "flag": int(graph.flag),
+                "penalty": int(graph.penalty),
+                "penalty_time_sec": _r(graph.penaltyTime, 2),
+                "mandatory_pit_done": bool(graph.mandatoryPitDone),
+                "driver_stint_total_time_left_sec": int(graph.driverStintTotalTimeLeft / 1000) if graph.driverStintTotalTimeLeft > 0 else 0,
+                "driver_stint_time_left_sec": int(graph.driverStintTimeLeft / 1000) if graph.driverStintTimeLeft > 0 else 0,
                 # Conditions
                 "speed_kmh":         round(phys.speedKmh, 1),
                 "air_temp":          round(phys.airTemp, 1),
                 "road_temp":         round(phys.roadTemp, 1),
                 "tyre_compound":     graph.tyreCompound.strip(),
+                "wind_speed":        _r(graph.windSpeed, 2),
+                "wind_direction":    _r(graph.windDirection, 1),
+                "surface_grip":      _r(graph.surfaceGrip, 3),
+
+                # Inputs / dynamique
+                "throttle":          _r(phys.gas, 3),
+                "brake":             _r(phys.brake, 3),
+                "clutch":            _r(phys.clutch, 3),
+                "steer_angle_deg":   _r(phys.steerAngle, 2),
+                "gear":              int(phys.gear),
+                "rpm":               int(phys.rpms),
+                "current_max_rpm":   int(phys.currentMaxRpm),
+                "is_engine_running": bool(phys.isEngineRunning),
+                "pit_limiter_on":    bool(phys.pitLimiterOn),
+                "abs_level":         _r(phys.abs, 2),
+                "tc_level":          _r(phys.tc, 2),
+                "tc_in_action":      bool(phys.tcinAction),
+                "abs_in_action":     bool(phys.absInAction),
+                "engine_brake":      int(phys.engineBrake),
+                "brake_bias":        _r(phys.brakeBias, 2),
+                "g_force":           {"x": _r(phys.accG[0], 3), "y": _r(phys.accG[1], 3), "z": _r(phys.accG[2], 3)},
+                "velocity":          {"x": _r(phys.velocity[0], 3), "y": _r(phys.velocity[1], 3), "z": _r(phys.velocity[2], 3)},
+                "local_velocity":    {"x": _r(phys.localVelocity[0], 3), "y": _r(phys.localVelocity[1], 3), "z": _r(phys.localVelocity[2], 3)},
+                "orientation":       {"heading": _r(phys.heading, 3), "pitch": _r(phys.pitch, 3), "roll": _r(phys.roll, 3)},
+
+                # Pneus / freins / suspension
+                "wheel_slip":        _arr(phys.wheelSlip, 3),
+                "wheel_load":        _arr(phys.wheelLoad, 1),
+                "wheels_pressure":   _arr(phys.wheelsPressure, 2),
+                "wheel_speed":       _arr(phys.wheelAngularSpeed, 2),
+                "tyre_wear":         _arr(phys.tyreWear, 3),
+                "tyre_dirty_level":  _arr(phys.tyreDirtyLevel, 3),
+                "tyre_core_temp":    _arr(phys.tyreCoreTemperature, 1),
+                "tyre_temp_i":       _arr(phys.tyreTempI, 1),
+                "tyre_temp_m":       _arr(phys.tyreTempM, 1),
+                "tyre_temp_o":       _arr(phys.tyreTempO, 1),
+                "tyre_temp":         _arr(phys.tyreTemp, 1),
+                "camber_rad":        _arr(phys.camberRAD, 4),
+                "slip_ratio":        _arr(phys.slipRatio, 3),
+                "slip_angle":        _arr(phys.slipAngle, 3),
+                "brake_temp":        _arr(phys.brakeTemp, 1),
+                "brake_pressure":    _arr(phys.brakePressure, 1),
+                "pad_life":          _arr(phys.padLife, 3),
+                "disc_life":         _arr(phys.discLife, 3),
+                "suspension_travel": _arr(phys.suspensionTravel, 3),
+                "suspension_damage": _arr(phys.suspensionDamage, 3),
+                "ride_height":       {"front": _r(phys.rideHeight[0], 3), "rear": _r(phys.rideHeight[1], 3)},
+
+                # Moteur / dégâts / assistances
+                "water_temp":        _r(phys.waterTemp, 1),
+                "turbo_boost":       _r(phys.turboBoost, 3),
+                "car_damage":        _arr(phys.carDamage, 3),
+                "drs_available":     bool(phys.drsAvailable),
+                "drs_enabled":       bool(phys.drsEnabled),
+                "rain_lights":       bool(graph.rainLights),
+                "flashing_lights":   bool(graph.flashingLights),
+                "lights_stage":      int(graph.lightsStage),
+                "wiper_level":       int(graph.wiperLV),
+                "rain_tyres":        bool(graph.rainTyres),
+
+                # Réglages voiture/session
+                "setup_tc":          int(graph.TC),
+                "setup_tccut":       int(graph.TCCut),
+                "setup_abs":         int(graph.ABS),
+                "setup_engine_map":  int(graph.EngineMap),
+                "front_brake_compound": int(phys.frontBrakeCompound),
+                "rear_brake_compound":  int(phys.rearBrakeCompound),
+                "track_configuration": stat.trackConfiguration.strip(),
+                "track_spline_length": _r(stat.trackSPlineLength, 1),
+                "sector_count":      int(stat.sectorCount),
+                "pit_window_start":  int(stat.PitWindowStart),
+                "pit_window_end":    int(stat.PitWindowEnd),
+                "is_timed_race":     bool(stat.isTimedRace),
+                "has_extra_lap":     bool(stat.hasExtraLap),
             }
         except Exception as e:
             print(f"[!] Erreur lecture snapshot : {e}")

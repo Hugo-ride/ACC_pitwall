@@ -781,6 +781,216 @@
   .lap-status-select { background: var(--bg4); border: 1px solid var(--line2); color: var(--text0); border-radius: 4px; padding: 3px 6px; font-family: var(--cond); font-size: 11px; letter-spacing:.06em; text-transform:uppercase; }
   .muted-note { font-family: var(--cond); font-size: 11px; color: var(--text2); letter-spacing:.08em; text-transform:uppercase; }
 
+  /* ── TELEMETRY PAGE ── */
+  .telemetry-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+    min-height: calc(100vh - 100px);
+  }
+  .telemetry-panel {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .telemetry-kpi {
+    background: var(--bg3);
+    border-radius: 6px;
+    padding: 10px;
+  }
+  .telemetry-kpi .label {
+    font-family: var(--cond);
+    font-size: 10px;
+    letter-spacing: .14em;
+    color: var(--text2);
+    text-transform: uppercase;
+  }
+  .telemetry-kpi .value {
+    font-family: var(--mono);
+    font-size: 16px;
+    color: var(--text0);
+    margin-top: 4px;
+  }
+  .telemetry-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg3);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .telemetry-table th, .telemetry-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: center;
+  }
+  .telemetry-table th {
+    font-family: var(--cond);
+    font-size: 10px;
+    letter-spacing: .14em;
+    color: var(--text2);
+    text-transform: uppercase;
+    background: var(--bg4);
+  }
+  .coach-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .coach-item {
+    background: var(--bg3);
+    border-left: 3px solid var(--blue);
+    border-radius: 5px;
+    padding: 9px 10px;
+    font-size: 12px;
+    color: var(--text1);
+  }
+  .coach-item.warn { border-left-color: var(--amber); }
+  .coach-item.danger { border-left-color: var(--red2); }
+  .coach-item.good { border-left-color: var(--green); }
+  .raw-box {
+    background: #0c1016;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px;
+    max-height: 250px;
+    overflow: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #b8d3ff;
+    white-space: pre;
+  }
+  .score-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .score-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 44px;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text1);
+  }
+  .score-bar {
+    height: 8px;
+    background: var(--bg4);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--red), var(--amber), var(--green));
+    transition: width .25s ease;
+  }
+
+  /* ── SETUP PAGE ── */
+  .setup-layout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 16px;
+    min-height: calc(100vh - 100px);
+  }
+  .setup-panel {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .setup-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .setup-form-grid .field.full { grid-column: 1 / -1; }
+  .setup-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .setup-card {
+    background: var(--bg3);
+    border: 1px solid var(--line2);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .setup-card-title {
+    font-family: var(--cond);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .setup-card-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text2);
+  }
+  .setup-card-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text1);
+  }
+  .setup-actions { display: flex; gap: 6px; }
+  .setup-actions .btn { padding: 7px; font-size: 11px; }
+  .setup-learning-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg3);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .setup-learning-table th, .setup-learning-table td {
+    padding: 7px 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+  .setup-learning-table th {
+    font-family: var(--cond);
+    font-size: 10px;
+    letter-spacing: .12em;
+    color: var(--text2);
+    text-transform: uppercase;
+    background: var(--bg4);
+  }
+
+  @media (max-width: 1200px) {
+    .app {
+      grid-template-columns: 1fr;
+      grid-template-rows: 52px auto auto auto;
+      overflow: auto;
+      height: auto;
+      min-height: 100vh;
+    }
+    .sidebar, .right-panel { border: none; }
+    .telemetry-layout, .setup-layout, .stats-layout { grid-template-columns: 1fr; min-height: auto; }
+    .telemetry-grid, .setup-cards { grid-template-columns: repeat(2, 1fr); }
+  }
+
 </style>
 </head>
 <body>
@@ -793,6 +1003,8 @@
     <nav class="nav-tabs">
       <button class="nav-tab active" id="tabStrategy" onclick="showPage('strategy')">Stratégie</button>
       <button class="nav-tab" id="tabStats" onclick="showPage('stats')">Statistiques</button>
+      <button class="nav-tab" id="tabTelemetry" onclick="showPage('telemetry')">Télémetrie</button>
+      <button class="nav-tab" id="tabSetup" onclick="showPage('setup')">Setup</button>
     </nav>
     <div class="top-divider"></div>
     <div class="top-status">
@@ -989,6 +1201,103 @@
       </div>
     </div>
 
+    <div class="page hidden" id="telemetryPage">
+      <div class="telemetry-layout">
+        <div class="telemetry-panel">
+          <div class="section-title">Télémétrie complète</div>
+          <div class="telemetry-grid" id="telemetryKpiGrid">
+            <div class="telemetry-kpi"><div class="label">Vitesse</div><div class="value" id="tmSpeed">—</div></div>
+            <div class="telemetry-kpi"><div class="label">Régime</div><div class="value" id="tmRpm">—</div></div>
+            <div class="telemetry-kpi"><div class="label">Rapport</div><div class="value" id="tmGear">—</div></div>
+            <div class="telemetry-kpi"><div class="label">Secteur</div><div class="value" id="tmSector">—</div></div>
+            <div class="telemetry-kpi"><div class="label">Gaz</div><div class="value" id="tmThrottle">—</div></div>
+            <div class="telemetry-kpi"><div class="label">Frein</div><div class="value" id="tmBrake">—</div></div>
+            <div class="telemetry-kpi"><div class="label">Braquage</div><div class="value" id="tmSteer">—</div></div>
+            <div class="telemetry-kpi"><div class="label">G latéral</div><div class="value" id="tmG">—</div></div>
+          </div>
+
+          <div class="section-title">Pneus / Freins (FL, FR, RL, RR)</div>
+          <table class="telemetry-table" id="telemetryTyreTable">
+            <thead>
+              <tr><th>Métrique</th><th>FL</th><th>FR</th><th>RL</th><th>RR</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Pression (psi)</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>Temp. core (C)</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>Temp. frein (C)</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>Usure pneu</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>Slip ratio</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="telemetry-panel">
+          <div class="section-title">Moniteur pilotage</div>
+          <div class="telemetry-kpi" style="margin-bottom:8px;">
+            <div class="label">Virage actuel</div>
+            <div class="value" id="tmCorner">—</div>
+          </div>
+
+          <div class="section-title">Score pilotage live</div>
+          <div class="score-grid">
+            <div class="score-row"><span>Freinage</span><div class="score-bar"><div class="score-bar-fill" id="scoreBraking"></div></div><strong id="scoreBrakingVal">0</strong></div>
+            <div class="score-row"><span>Rotation</span><div class="score-bar"><div class="score-bar-fill" id="scoreRotation"></div></div><strong id="scoreRotationVal">0</strong></div>
+            <div class="score-row"><span>Traction</span><div class="score-bar"><div class="score-bar-fill" id="scoreTraction"></div></div><strong id="scoreTractionVal">0</strong></div>
+            <div class="score-row"><span>Régularité</span><div class="score-bar"><div class="score-bar-fill" id="scoreConsistency"></div></div><strong id="scoreConsistencyVal">0</strong></div>
+            <div class="score-row"><span>Global</span><div class="score-bar"><div class="score-bar-fill" id="scoreGlobal"></div></div><strong id="scoreGlobalVal">0</strong></div>
+          </div>
+
+          <div class="section-title" style="margin-top:8px;">Coaching live</div>
+          <div class="coach-list" id="coachList">
+            <div class="coach-item">En attente de données live.</div>
+          </div>
+
+          <div class="section-title">Brut ACC (JSON)</div>
+          <div class="raw-box" id="telemetryRaw">Aucune trame.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page hidden" id="setupPage">
+      <div class="setup-layout">
+        <div class="setup-panel">
+          <div class="section-title">Nouveau setup</div>
+          <div class="setup-form-grid">
+            <div class="field full"><label>Nom setup</label><input id="setupName" type="text" placeholder="Race stable - stint long"></div>
+            <div class="field"><label>Voiture</label><input id="setupCar" type="text" placeholder="Auto"></div>
+            <div class="field"><label>Circuit</label><input id="setupTrack" type="text" placeholder="Auto"></div>
+            <div class="field"><label>Type</label><select id="setupType"><option>Race</option><option>Qualifying</option><option>Wet</option></select></div>
+            <div class="field"><label>Aileron</label><input id="setupWing" type="number" placeholder="8"></div>
+            <div class="field"><label>Brake bias (%)</label><input id="setupBrakeBias" type="number" step="0.1" placeholder="55.5"></div>
+            <div class="field"><label>TC</label><input id="setupTc" type="number" placeholder="4"></div>
+            <div class="field"><label>ABS</label><input id="setupAbs" type="number" placeholder="3"></div>
+            <div class="field"><label>Pression départ AV</label><input id="setupPsiFront" type="number" step="0.1" placeholder="26.8"></div>
+            <div class="field"><label>Pression départ AR</label><input id="setupPsiRear" type="number" step="0.1" placeholder="27.0"></div>
+            <div class="field full"><label>Notes</label><input id="setupNotes" type="text" placeholder="Ajuster +1 TC en sortie lente"></div>
+          </div>
+          <button class="btn btn-primary" onclick="saveUserSetup()">Sauvegarder setup</button>
+        </div>
+
+        <div class="setup-panel">
+          <div class="section-title">Setups recommandés (auto)</div>
+          <div class="setup-card-sub" id="activeSetupLabel">Aucun setup actif</div>
+          <div class="setup-cards" id="autoSetupCards">
+            <div class="setup-card"><div class="setup-card-title">Pas assez de données</div><div class="setup-card-sub">Roule quelques tours pour générer des recommandations.</div></div>
+          </div>
+
+          <div class="section-title">Mes setups</div>
+          <div class="setup-cards" id="userSetupCards">
+            <div class="setup-card"><div class="setup-card-title">Aucun setup enregistré</div><div class="setup-card-sub">Utilise le formulaire à gauche.</div></div>
+          </div>
+
+          <div class="section-title">Apprentissage setups</div>
+          <div id="setupLearningWrap">
+            <div class="setup-card"><div class="setup-card-title">Pas encore de données</div><div class="setup-card-sub">Charge un setup et roule plusieurs tours.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- RIGHT PANEL -->
@@ -1179,6 +1488,8 @@ function handleServerMessage(msg) {
 
       document.getElementById('carName').value   = msg.car;
       document.getElementById('trackName').value = msg.track;
+      if (!document.getElementById('setupCar').value) document.getElementById('setupCar').value = msg.car;
+      if (!document.getElementById('setupTrack').value) document.getElementById('setupTrack').value = msg.track;
       document.getElementById('sessionInfo').textContent =
         msg.car.toUpperCase() + ' — ' + msg.track.toUpperCase();
 
@@ -1205,6 +1516,7 @@ function handleServerMessage(msg) {
       setServerStatus('data');
       // Mise à jour live toutes les 500ms
       const d = msg.data;
+      latestTelemetry = d;
       updateFuelGauge(d.fuel_remaining, d.tank_capacity);
 
       // Temps restant
@@ -1228,6 +1540,8 @@ function handleServerMessage(msg) {
       }
       if (d.car) document.getElementById('carName').value = d.car;
       if (d.track) document.getElementById('trackName').value = d.track;
+      if (!document.getElementById('setupCar').value && d.car) document.getElementById('setupCar').value = d.car;
+      if (!document.getElementById('setupTrack').value && d.track) document.getElementById('setupTrack').value = d.track;
       if (d.car && d.track) {
         document.getElementById('sessionInfo').textContent = d.car.toUpperCase() + ' — ' + d.track.toUpperCase();
       }
@@ -1236,6 +1550,12 @@ function handleServerMessage(msg) {
         document.getElementById('sessionType').value = d.session_type;
         refreshSessionButtons();
       }
+
+      updateDrivingScore(d);
+      renderTelemetryPage(d);
+      renderCoachPanel(d);
+      renderDrivingScore();
+      renderAutoSetups();
       break;
     }
 
@@ -1262,6 +1582,12 @@ function handleServerMessage(msg) {
         sessionName:  l.session_name,
         sessionDay:   l.session_day,
       });
+      recordLapForLearning({
+        lapTimeSec: l.lap_time_sec,
+        fuelUsed: l.fuel_used,
+        car: document.getElementById('carName').value,
+        track: document.getElementById('trackName').value
+      });
       // Mettre à jour stats historiques
       if (msg.stats) renderHistStats(msg.stats);
       break;
@@ -1272,6 +1598,7 @@ function handleServerMessage(msg) {
       allStatsData = msg.data || [];
       renderSavedCombos(allStatsData);
       renderStatsList(allStatsData);
+      renderAutoSetups();
       break;
     }
 
@@ -1298,6 +1625,70 @@ let lapChart    = null;
 let allStatsData = [];
 let statsDetailData = null;
 let manualSessionTypeLocked = false;
+let latestTelemetry = null;
+let userSetups = [];
+let activeSetupId = null;
+let activeSetupLabel = 'Aucun setup actif';
+let setupLearning = {};
+let drivingScore = { braking: 0, rotation: 0, traction: 0, consistency: 0, global: 0 };
+let drivingSamples = { braking: [], rotation: [], traction: [] };
+
+const TRACK_CORNERS = {
+  monza: [
+    { name: 'T1 Rettifilo', start: 0.035, end: 0.085, type: 'heavy_brake' },
+    { name: 'T4 Roggia', start: 0.165, end: 0.21, type: 'heavy_brake' },
+    { name: 'Lesmo 1', start: 0.34, end: 0.385, type: 'medium' },
+    { name: 'Lesmo 2', start: 0.43, end: 0.48, type: 'traction' },
+    { name: 'Ascari', start: 0.58, end: 0.67, type: 'flow' },
+    { name: 'Parabolica', start: 0.79, end: 0.92, type: 'traction' }
+  ],
+  spa: [
+    { name: 'La Source', start: 0.0, end: 0.04, type: 'heavy_brake' },
+    { name: 'Les Combes', start: 0.255, end: 0.33, type: 'heavy_brake' },
+    { name: 'Bruxelles', start: 0.355, end: 0.41, type: 'traction' },
+    { name: 'Pouhon', start: 0.5, end: 0.57, type: 'flow' },
+    { name: 'Bus Stop', start: 0.91, end: 0.98, type: 'heavy_brake' }
+  ],
+  nurburgring: [
+    { name: 'T1', start: 0.04, end: 0.095, type: 'heavy_brake' },
+    { name: 'Mercedes Arena', start: 0.11, end: 0.22, type: 'flow' },
+    { name: 'Dunlop', start: 0.36, end: 0.42, type: 'heavy_brake' },
+    { name: 'Schumacher S', start: 0.57, end: 0.64, type: 'flow' },
+    { name: 'NGK Chicane', start: 0.9, end: 0.97, type: 'heavy_brake' }
+  ],
+  zolder: [
+    { name: 'Eerste', start: 0.02, end: 0.07, type: 'heavy_brake' },
+    { name: 'Kanaalbocht', start: 0.21, end: 0.27, type: 'traction' },
+    { name: 'Bolderberg', start: 0.42, end: 0.51, type: 'flow' },
+    { name: 'Kleine chicane', start: 0.77, end: 0.86, type: 'heavy_brake' }
+  ]
+};
+
+const TRACK_COACH = {
+  monza: [
+    'Monza: priorise la stabilité au freinage dans les grosses décélérations.',
+    'Monza: sortie de chicane, ouvre le volant tôt pour maximiser la traction.'
+  ],
+  spa: [
+    'Spa: surveille les pressions en montée, la température grimpe vite.',
+    'Spa: prépare une voiture stable dans les enchaînements rapides.'
+  ],
+  nurburgring: [
+    'Nurburgring: accepte une entrée légèrement plus lente pour une sortie propre.',
+    'Nurburgring: reste progressif sur les transferts de charge.'
+  ],
+  zolder: [
+    'Zolder: agressif sur les vibreurs uniquement si la voiture reste stable en compression.'
+  ]
+};
+
+const CAR_COACH = {
+  porsche: 'Porsche: attention au transfert arrière en entrée, relâchement de frein progressif.',
+  ferrari: 'Ferrari: vise des entrées fluides et protège les pneus arrière en sortie lente.',
+  lamborghini: 'Lamborghini: garde un volant propre à la remise des gaz pour limiter le TC.',
+  bmw: 'BMW: exploite la stabilité au freinage, mais évite les remises de gaz brutales sur bosselé.'
+};
+
 const STATUS_LABELS = {
   valid: 'Valide',
   track_limits: 'Limites de piste',
@@ -1361,6 +1752,174 @@ function formatSessionDisplayName(entry) {
 function formatSessionDate(entry) {
   const d = sessionDay(entry);
   return d === 'date_inconnue' ? 'Date inconnue' : new Date(d).toLocaleDateString('fr-FR');
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined || Number.isNaN(Number(v))) return '—';
+  return `${Math.round(Number(v) * 100)}%`;
+}
+
+function wheelAt(values, idx, digits=1) {
+  if (!Array.isArray(values) || values[idx] === undefined || values[idx] === null) return '—';
+  return Number(values[idx]).toFixed(digits);
+}
+
+function normalizeTrackKey(track) {
+  const t = String(track || '').toLowerCase();
+  if (t.includes('nurburgring')) return 'nurburgring';
+  if (t.includes('spa')) return 'spa';
+  if (t.includes('monza')) return 'monza';
+  if (t.includes('zolder')) return 'zolder';
+  return t;
+}
+
+function inPosRange(pos, start, end) {
+  if (!Number.isFinite(pos)) return false;
+  if (start <= end) return pos >= start && pos <= end;
+  return pos >= start || pos <= end;
+}
+
+function detectCurrentCorner(d) {
+  const pos = Number(d?.normalized_car_position);
+  const trackKey = normalizeTrackKey(d?.track);
+  const corners = TRACK_CORNERS[trackKey] || [];
+  for (const c of corners) {
+    if (inPosRange(pos, c.start, c.end)) return c;
+  }
+  return null;
+}
+
+function getDrivingPhase(d) {
+  const steer = Math.abs(Number(d?.steer_angle_deg || 0));
+  const brake = Number(d?.brake || 0);
+  const throttle = Number(d?.throttle || 0);
+  if (brake > 0.25) return 'entry';
+  if (steer > 7 && throttle < 0.25) return 'apex';
+  if (throttle > 0.45 && steer < 10) return 'exit';
+  return 'straight';
+}
+
+function rollingAvg(arr, max = 80) {
+  if (!arr.length) return 0;
+  const slice = arr.slice(-max);
+  return slice.reduce((a, b) => a + b, 0) / slice.length;
+}
+
+function clampScore(v) {
+  return Math.max(0, Math.min(100, Math.round(v)));
+}
+
+function updateDrivingScore(d) {
+  const brake = Number(d?.brake || 0);
+  const throttle = Number(d?.throttle || 0);
+  const steer = Math.abs(Number(d?.steer_angle_deg || 0));
+  const absActive = !!d?.abs_in_action;
+  const tcActive = !!d?.tc_in_action;
+  const slipAvg = Array.isArray(d?.slip_ratio) && d.slip_ratio.length
+    ? d.slip_ratio.reduce((a, b) => a + Math.abs(Number(b || 0)), 0) / d.slip_ratio.length
+    : 0;
+
+  let braking = 100;
+  if (brake > 0.75 && absActive) braking -= 26;
+  if (brake > 0.6 && steer > 14) braking -= 18;
+  if (brake < 0.05 && steer > 16 && throttle < 0.2) braking -= 8;
+
+  let rotation = 100;
+  if (steer > 18 && slipAvg > 0.2) rotation -= 24;
+  if (steer < 3 && brake > 0.2 && throttle < 0.2) rotation -= 10;
+  if (Math.abs(Number(d?.g_force?.y || 0)) < 0.45 && steer > 10) rotation -= 12;
+
+  let traction = 100;
+  if (throttle > 0.6 && tcActive) traction -= 24;
+  if (throttle > 0.75 && steer > 12) traction -= 18;
+  if (throttle > 0.4 && slipAvg > 0.24) traction -= 14;
+
+  drivingSamples.braking.push(clampScore(braking));
+  drivingSamples.rotation.push(clampScore(rotation));
+  drivingSamples.traction.push(clampScore(traction));
+
+  const validLaps = sessionLaps.filter(isLapIncluded).map(l => Number(l.lapTimeSec || 0)).filter(isReasonableLapTime);
+  let consistency = 70;
+  if (validLaps.length >= 3) {
+    const recent = validLaps.slice(-6);
+    const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
+    const variance = recent.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / recent.length;
+    const std = Math.sqrt(variance);
+    consistency = clampScore(100 - std * 18);
+  }
+
+  drivingScore.braking = clampScore(rollingAvg(drivingSamples.braking));
+  drivingScore.rotation = clampScore(rollingAvg(drivingSamples.rotation));
+  drivingScore.traction = clampScore(rollingAvg(drivingSamples.traction));
+  drivingScore.consistency = consistency;
+  drivingScore.global = clampScore((drivingScore.braking + drivingScore.rotation + drivingScore.traction + drivingScore.consistency) / 4);
+}
+
+function paintScoreBar(id, score) {
+  const fill = document.getElementById(id);
+  if (!fill) return;
+  fill.style.width = `${clampScore(score)}%`;
+}
+
+function renderDrivingScore() {
+  paintScoreBar('scoreBraking', drivingScore.braking);
+  paintScoreBar('scoreRotation', drivingScore.rotation);
+  paintScoreBar('scoreTraction', drivingScore.traction);
+  paintScoreBar('scoreConsistency', drivingScore.consistency);
+  paintScoreBar('scoreGlobal', drivingScore.global);
+  document.getElementById('scoreBrakingVal').textContent = String(drivingScore.braking);
+  document.getElementById('scoreRotationVal').textContent = String(drivingScore.rotation);
+  document.getElementById('scoreTractionVal').textContent = String(drivingScore.traction);
+  document.getElementById('scoreConsistencyVal').textContent = String(drivingScore.consistency);
+  document.getElementById('scoreGlobalVal').textContent = String(drivingScore.global);
+}
+
+function setupLearningStorageKey() { return 'accPitwallSetupLearningV1'; }
+
+function loadSetupLearning() {
+  try {
+    setupLearning = JSON.parse(localStorage.getItem(setupLearningStorageKey()) || '{}');
+  } catch {
+    setupLearning = {};
+  }
+}
+
+function persistSetupLearning() {
+  localStorage.setItem(setupLearningStorageKey(), JSON.stringify(setupLearning));
+}
+
+function setActiveSetup(id, label) {
+  activeSetupId = id;
+  activeSetupLabel = label || 'Setup actif';
+  const el = document.getElementById('activeSetupLabel');
+  if (el) el.textContent = `Actif: ${activeSetupLabel}`;
+}
+
+function recordLapForLearning(lap) {
+  if (!activeSetupId || !lap || !isReasonableLapTime(Number(lap.lapTimeSec || lap.lap_time_sec || 0))) return;
+  const car = String(lap.car || document.getElementById('carName')?.value || latestTelemetry?.car || 'Unknown').trim();
+  const track = String(lap.track || document.getElementById('trackName')?.value || latestTelemetry?.track || 'Unknown').trim();
+  const key = `${car}__${track}`;
+  setupLearning[key] = setupLearning[key] || {};
+  setupLearning[key][activeSetupId] = setupLearning[key][activeSetupId] || {
+    label: activeSetupLabel,
+    car,
+    track,
+    laps: []
+  };
+
+  setupLearning[key][activeSetupId].laps.push({
+    lap_time_sec: Number(lap.lapTimeSec || lap.lap_time_sec || 0),
+    fuel_used: Number(lap.fuelUsed || lap.fuel_used || 0),
+    score_global: Number(drivingScore.global || 0),
+    ts: new Date().toISOString()
+  });
+
+  if (setupLearning[key][activeSetupId].laps.length > 120) {
+    setupLearning[key][activeSetupId].laps = setupLearning[key][activeSetupId].laps.slice(-120);
+  }
+  persistSetupLearning();
+  renderSetupLearning();
 }
 
 // ═══════════════════════════════════════════════════
@@ -1841,6 +2400,344 @@ function renderSavedCombos(entries) {
   });
 }
 
+// ═══════════════════════════════════════════════════
+//  PAGE TELEMETRIE + COACH
+// ═══════════════════════════════════════════════════
+function renderTelemetryPage(d) {
+  if (!d) return;
+  const corner = detectCurrentCorner(d);
+  document.getElementById('tmSpeed').textContent = `${Number(d.speed_kmh || 0).toFixed(1)} km/h`;
+  document.getElementById('tmRpm').textContent = d.rpm ? `${d.rpm} rpm` : '—';
+  const gear = Number(d.gear);
+  document.getElementById('tmGear').textContent = Number.isFinite(gear) ? (gear <= 0 ? 'N' : String(gear)) : '—';
+  document.getElementById('tmSector').textContent = d.current_sector_index !== undefined ? `S${Number(d.current_sector_index) + 1}` : '—';
+  document.getElementById('tmThrottle').textContent = fmtPct(d.throttle);
+  document.getElementById('tmBrake').textContent = fmtPct(d.brake);
+  document.getElementById('tmSteer').textContent = d.steer_angle_deg !== undefined ? `${Number(d.steer_angle_deg).toFixed(1)} deg` : '—';
+  document.getElementById('tmG').textContent = d.g_force ? `${Number(d.g_force.y || 0).toFixed(2)} g` : '—';
+  document.getElementById('tmCorner').textContent = corner ? corner.name : 'Ligne droite';
+
+  const tyreRows = document.querySelectorAll('#telemetryTyreTable tbody tr');
+  if (tyreRows.length >= 5) {
+    const rows = [
+      [wheelAt(d.wheels_pressure, 0, 2), wheelAt(d.wheels_pressure, 1, 2), wheelAt(d.wheels_pressure, 2, 2), wheelAt(d.wheels_pressure, 3, 2)],
+      [wheelAt(d.tyre_core_temp, 0, 1), wheelAt(d.tyre_core_temp, 1, 1), wheelAt(d.tyre_core_temp, 2, 1), wheelAt(d.tyre_core_temp, 3, 1)],
+      [wheelAt(d.brake_temp, 0, 1), wheelAt(d.brake_temp, 1, 1), wheelAt(d.brake_temp, 2, 1), wheelAt(d.brake_temp, 3, 1)],
+      [wheelAt(d.tyre_wear, 0, 3), wheelAt(d.tyre_wear, 1, 3), wheelAt(d.tyre_wear, 2, 3), wheelAt(d.tyre_wear, 3, 3)],
+      [wheelAt(d.slip_ratio, 0, 3), wheelAt(d.slip_ratio, 1, 3), wheelAt(d.slip_ratio, 2, 3), wheelAt(d.slip_ratio, 3, 3)],
+    ];
+    rows.forEach((arr, idx) => {
+      const cells = tyreRows[idx].querySelectorAll('td');
+      for (let i = 0; i < 4; i++) cells[i + 1].textContent = arr[i];
+    });
+  }
+
+  const raw = document.getElementById('telemetryRaw');
+  raw.textContent = JSON.stringify(d, null, 2);
+}
+
+function renderCoachPanel(d) {
+  const el = document.getElementById('coachList');
+  if (!el || !d) return;
+  const notes = [];
+  const corner = detectCurrentCorner(d);
+  const phase = getDrivingPhase(d);
+
+  if (d.abs_in_action && Number(d.brake) > 0.7) {
+    notes.push({ level: 'warn', text: 'Freinage: ABS actif fort, relache 3-5% de pression pour garder du grip directionnel.' });
+  }
+  if (d.tc_in_action && Number(d.throttle) > 0.6) {
+    notes.push({ level: 'warn', text: 'Sortie de virage: TC déclenché, ouvre le volant un peu plus avant plein gaz.' });
+  }
+  if (Number(d.road_temp) >= 35) {
+    notes.push({ level: 'danger', text: 'Piste chaude: réduis l aggression sur les pneus et surveille les pressions.' });
+  }
+  if (Array.isArray(d.brake_temp) && d.brake_temp.some(v => Number(v) > 780)) {
+    notes.push({ level: 'warn', text: 'Freins chauds: allonge légèrement les zones de relachement pour refroidir le train avant.' });
+  }
+  if (Number(d.fuel_remaining) > 0 && Number(d.fuel_per_lap) > 0) {
+    const lapsLeft = d.fuel_remaining / d.fuel_per_lap;
+    if (lapsLeft < 2) notes.push({ level: 'danger', text: 'Carburant critique: moins de 2 tours estimés restants.' });
+    else if (lapsLeft < 4) notes.push({ level: 'warn', text: `Carburant limite: environ ${lapsLeft.toFixed(1)} tours restants.` });
+  }
+
+  if (corner) {
+    if (corner.type === 'heavy_brake') {
+      notes.push({ level: 'good', text: `${corner.name}: attaque en ligne, puis relâche progressif pour pivoter.` });
+    } else if (corner.type === 'traction') {
+      notes.push({ level: 'good', text: `${corner.name}: priorité sortie, retarde le plein gaz si le volant est encore fermé.` });
+    } else if (corner.type === 'flow') {
+      notes.push({ level: 'good', text: `${corner.name}: garde un volant propre et des transferts de charge doux.` });
+    } else {
+      notes.push({ level: 'good', text: `${corner.name}: vise un apex net et une remise des gaz progressive.` });
+    }
+  }
+
+  const steer = Math.abs(Number(d.steer_angle_deg || 0));
+  const brake = Number(d.brake || 0);
+  const throttle = Number(d.throttle || 0);
+  if (phase === 'entry') notes.push({ level: 'good', text: 'Phase entrée: garde une pression de frein décroissante pour aider la rotation.' });
+  if (phase === 'apex') notes.push({ level: 'good', text: 'Phase apex: maintiens une direction propre et évite les corrections brusques.' });
+  if (phase === 'exit') notes.push({ level: 'good', text: 'Phase sortie: bonne remise de gaz, continue de déplier le volant progressivement.' });
+
+  const track = String(d.track || '').toLowerCase();
+  Object.keys(TRACK_COACH).forEach(k => {
+    if (track.includes(k)) TRACK_COACH[k].slice(0, 1).forEach(t => notes.push({ level: 'good', text: t }));
+  });
+
+  const car = String(d.car || '').toLowerCase();
+  Object.keys(CAR_COACH).forEach(k => {
+    if (car.includes(k)) notes.push({ level: 'good', text: CAR_COACH[k] });
+  });
+
+  const unique = [];
+  const seen = new Set();
+  notes.forEach(n => {
+    if (!seen.has(n.text)) {
+      seen.add(n.text);
+      unique.push(n);
+    }
+  });
+
+  const finalNotes = unique.slice(0, 8);
+  if (!finalNotes.length) finalNotes.push({ level: 'good', text: 'Conduite stable. Continue a construire des tours propres et reguliers.' });
+
+  el.innerHTML = finalNotes.map(n => `<div class="coach-item ${n.level}">${n.text}</div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  PAGE SETUP
+// ═══════════════════════════════════════════════════
+function setupStorageKey() { return 'accPitwallUserSetupsV1'; }
+
+function loadUserSetups() {
+  try {
+    userSetups = JSON.parse(localStorage.getItem(setupStorageKey()) || '[]');
+  } catch {
+    userSetups = [];
+  }
+}
+
+function persistUserSetups() {
+  localStorage.setItem(setupStorageKey(), JSON.stringify(userSetups));
+}
+
+function saveUserSetup() {
+  const setup = {
+    id: Date.now(),
+    name: document.getElementById('setupName').value.trim() || 'Setup sans nom',
+    car: document.getElementById('setupCar').value.trim() || document.getElementById('carName').value.trim() || 'Unknown',
+    track: document.getElementById('setupTrack').value.trim() || document.getElementById('trackName').value.trim() || 'Unknown',
+    type: document.getElementById('setupType').value,
+    wing: Number(document.getElementById('setupWing').value || 0),
+    brakeBias: Number(document.getElementById('setupBrakeBias').value || 0),
+    tc: Number(document.getElementById('setupTc').value || 0),
+    abs: Number(document.getElementById('setupAbs').value || 0),
+    psiFront: Number(document.getElementById('setupPsiFront').value || 0),
+    psiRear: Number(document.getElementById('setupPsiRear').value || 0),
+    notes: document.getElementById('setupNotes').value.trim(),
+    createdAt: new Date().toISOString(),
+  };
+  userSetups.unshift(setup);
+  persistUserSetups();
+  setActiveSetup(`user:${setup.id}`, `${setup.name} (${setup.car} @ ${setup.track})`);
+  renderUserSetups();
+  renderSetupLearning();
+  flash('Setup sauvegarde.');
+}
+
+function deleteUserSetup(id) {
+  userSetups = userSetups.filter(s => String(s.id) !== String(id));
+  persistUserSetups();
+  renderUserSetups();
+}
+
+function loadUserSetup(id) {
+  const s = userSetups.find(x => String(x.id) === String(id));
+  if (!s) return;
+  applySuggestedSetup(s);
+  setActiveSetup(`user:${s.id}`, `${s.name} (${s.car} @ ${s.track})`);
+  flash('Setup utilisateur charge.');
+}
+
+function applySuggestedSetup(s) {
+  document.getElementById('setupCar').value = s.car || '';
+  document.getElementById('setupTrack').value = s.track || '';
+  document.getElementById('setupType').value = s.type || 'Race';
+  document.getElementById('setupWing').value = s.wing ?? '';
+  document.getElementById('setupBrakeBias').value = s.brakeBias ?? '';
+  document.getElementById('setupTc').value = s.tc ?? '';
+  document.getElementById('setupAbs').value = s.abs ?? '';
+  document.getElementById('setupPsiFront').value = s.psiFront ?? '';
+  document.getElementById('setupPsiRear').value = s.psiRear ?? '';
+  document.getElementById('setupNotes').value = s.notes || '';
+  showPage('setup');
+}
+
+function getLearningRowsForCurrentCombo() {
+  const car = (document.getElementById('carName').value || latestTelemetry?.car || 'Unknown').trim();
+  const track = (document.getElementById('trackName').value || latestTelemetry?.track || 'Unknown').trim();
+  const key = `${car}__${track}`;
+  const bySetup = setupLearning[key] || {};
+  const rows = [];
+  Object.keys(bySetup).forEach(setupId => {
+    const entry = bySetup[setupId];
+    const laps = (entry.laps || []).filter(l => isReasonableLapTime(l.lap_time_sec));
+    if (!laps.length) return;
+    const avgLap = laps.reduce((a, b) => a + b.lap_time_sec, 0) / laps.length;
+    const avgFuel = laps.reduce((a, b) => a + Number(b.fuel_used || 0), 0) / laps.length;
+    const avgScore = laps.reduce((a, b) => a + Number(b.score_global || 0), 0) / laps.length;
+    const variance = laps.reduce((a, b) => a + Math.pow(b.lap_time_sec - avgLap, 2), 0) / laps.length;
+    const consistency = Math.sqrt(variance);
+    const perfIndex = avgLap + consistency * 0.8 + avgFuel * 2.0 - avgScore * 0.04;
+    rows.push({ setupId, label: entry.label || setupId, laps: laps.length, avgLap, avgFuel, avgScore, consistency, perfIndex });
+  });
+  rows.sort((a, b) => a.perfIndex - b.perfIndex);
+  return rows;
+}
+
+function renderSetupLearning() {
+  const wrap = document.getElementById('setupLearningWrap');
+  if (!wrap) return;
+  const rows = getLearningRowsForCurrentCombo();
+  if (!rows.length) {
+    wrap.innerHTML = '<div class="setup-card"><div class="setup-card-title">Pas encore de données</div><div class="setup-card-sub">Charge un setup et roule plusieurs tours.</div></div>';
+    return;
+  }
+  wrap.innerHTML = `
+    <table class="setup-learning-table">
+      <thead><tr><th>Setup</th><th>Tours</th><th>Lap moy.</th><th>Reg.</th><th>Conso</th><th>Score</th></tr></thead>
+      <tbody>
+        ${rows.map((r, idx) => `<tr>
+          <td>${idx === 0 ? 'TOP ' : ''}${r.label}</td>
+          <td>${r.laps}</td>
+          <td>${formatTime(r.avgLap)}</td>
+          <td>${r.consistency.toFixed(3)}s</td>
+          <td>${r.avgFuel.toFixed(2)} L</td>
+          <td>${r.avgScore.toFixed(0)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderUserSetups() {
+  const el = document.getElementById('userSetupCards');
+  if (!el) return;
+  if (!userSetups.length) {
+    el.innerHTML = '<div class="setup-card"><div class="setup-card-title">Aucun setup enregistre</div><div class="setup-card-sub">Utilise le formulaire a gauche.</div></div>';
+    return;
+  }
+  el.innerHTML = userSetups.map(s => `
+    <div class="setup-card">
+      <div class="setup-card-title">${s.name}</div>
+      <div class="setup-card-sub">${s.car} @ ${s.track} · ${s.type}</div>
+      <div class="setup-card-row"><span>Aileron</span><strong>${s.wing || '—'}</strong></div>
+      <div class="setup-card-row"><span>Brake bias</span><strong>${s.brakeBias || '—'}</strong></div>
+      <div class="setup-card-row"><span>TC / ABS</span><strong>${s.tc || '—'} / ${s.abs || '—'}</strong></div>
+      <div class="setup-card-row"><span>PSI AV/AR</span><strong>${s.psiFront || '—'} / ${s.psiRear || '—'}</strong></div>
+      <div class="setup-actions">
+        <button class="btn btn-secondary" onclick="loadUserSetup('${s.id}')">Charger</button>
+        <button class="btn btn-secondary" onclick="deleteUserSetup('${s.id}')">Supprimer</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function computeAutoSetups() {
+  const car = (document.getElementById('carName').value || latestTelemetry?.car || 'Unknown').trim();
+  const track = (document.getElementById('trackName').value || latestTelemetry?.track || 'Unknown').trim();
+  const roadTemp = Number(latestTelemetry?.road_temp || 25);
+  const avgFuel = Number(latestTelemetry?.fuel_per_lap || 2.7);
+  const carEntries = (allStatsData || []).filter(e => String(e.car || '').toLowerCase() === car.toLowerCase() && String(e.track || '').toLowerCase() === track.toLowerCase());
+  const totalValidLaps = carEntries.reduce((a, e) => a + Number(e.stats?.total_laps || 0), 0);
+
+  const tempAdjust = roadTemp > 35 ? -0.3 : roadTemp < 18 ? 0.2 : 0;
+  const baseWing = avgFuel > 3.0 ? 8 : 6;
+  const baseTc = roadTemp > 32 ? 5 : 4;
+  const confidence = totalValidLaps >= 20 ? 'Haute' : totalValidLaps >= 8 ? 'Moyenne' : 'Faible';
+  const learned = getLearningRowsForCurrentCombo();
+  const bestLearned = learned[0] || null;
+
+  const learnedWingBias = bestLearned && /qualif/i.test(bestLearned.label) ? -1 : 0;
+  const learnedTcBias = bestLearned && bestLearned.avgScore < 70 ? 1 : 0;
+  const learnedBrakeBias = bestLearned && bestLearned.consistency > 0.9 ? 0.2 : 0;
+
+  return [
+    {
+      name: 'Race stable',
+      type: 'Race',
+      car, track,
+      wing: baseWing + 1 + learnedWingBias,
+      brakeBias: 55.8 + learnedBrakeBias,
+      tc: baseTc + learnedTcBias,
+      abs: 3,
+      psiFront: Number((26.9 + tempAdjust).toFixed(1)),
+      psiRear: Number((27.1 + tempAdjust).toFixed(1)),
+      confidence,
+      notes: `Base endurance. ${totalValidLaps} tours analyses sur ce combo.${bestLearned ? ` Référence learn: ${bestLearned.label}.` : ''}`
+    },
+    {
+      name: 'Qualif attaque',
+      type: 'Qualifying',
+      car, track,
+      wing: Math.max(3, baseWing - 1 + learnedWingBias),
+      brakeBias: 55.2 + learnedBrakeBias,
+      tc: Math.max(2, baseTc - 1 + learnedTcBias),
+      abs: 2,
+      psiFront: Number((27.2 + tempAdjust).toFixed(1)),
+      psiRear: Number((27.3 + tempAdjust).toFixed(1)),
+      confidence,
+      notes: 'Set orienté chrono pur, plus sensible sur les sorties lentes.'
+    },
+    {
+      name: 'Pluie / faible grip',
+      type: 'Wet',
+      car, track,
+      wing: baseWing + 2 + learnedWingBias,
+      brakeBias: 56.4 + learnedBrakeBias,
+      tc: baseTc + 1 + learnedTcBias,
+      abs: 4,
+      psiFront: Number((27.4 + tempAdjust).toFixed(1)),
+      psiRear: Number((27.6 + tempAdjust).toFixed(1)),
+      confidence,
+      notes: 'Ajoute de la stabilité en entrée et à la remise des gaz.'
+    }
+  ];
+}
+
+function renderAutoSetups() {
+  const el = document.getElementById('autoSetupCards');
+  if (!el) return;
+  const setups = computeAutoSetups();
+  el.innerHTML = setups.map((s, idx) => `
+    <div class="setup-card">
+      <div class="setup-card-title">${s.name}</div>
+      <div class="setup-card-sub">${s.car} @ ${s.track} · ${s.type}</div>
+      <div class="setup-card-row"><span>Confiance</span><strong>${s.confidence}</strong></div>
+      <div class="setup-card-row"><span>Aileron</span><strong>${s.wing}</strong></div>
+      <div class="setup-card-row"><span>Brake bias</span><strong>${s.brakeBias.toFixed(1)}%</strong></div>
+      <div class="setup-card-row"><span>TC / ABS</span><strong>${s.tc} / ${s.abs}</strong></div>
+      <div class="setup-card-row"><span>PSI AV / AR</span><strong>${s.psiFront.toFixed(1)} / ${s.psiRear.toFixed(1)}</strong></div>
+      <div class="setup-card-sub">${s.notes}</div>
+      <div class="setup-actions">
+        <button class="btn btn-secondary" onclick="applyAutoSetup(${idx})">Charger dans le formulaire</button>
+      </div>
+    </div>
+  `).join('');
+  window.__autoSetups = setups;
+}
+
+function applyAutoSetup(idx) {
+  const setups = window.__autoSetups || [];
+  const setup = setups[idx];
+  if (!setup) return;
+  applySuggestedSetup(setup);
+  setActiveSetup(`auto:${idx}`, `${setup.name} (${setup.car} @ ${setup.track})`);
+  renderSetupLearning();
+  flash('Setup auto charge dans le formulaire.');
+}
+
 
 
 
@@ -1850,9 +2747,23 @@ function renderSavedCombos(entries) {
 function showPage(page) {
   document.getElementById('strategyPage').classList.toggle('hidden', page !== 'strategy');
   document.getElementById('statsPage').classList.toggle('hidden', page !== 'stats');
+  document.getElementById('telemetryPage').classList.toggle('hidden', page !== 'telemetry');
+  document.getElementById('setupPage').classList.toggle('hidden', page !== 'setup');
   document.getElementById('tabStrategy').classList.toggle('active', page === 'strategy');
   document.getElementById('tabStats').classList.toggle('active', page === 'stats');
+  document.getElementById('tabTelemetry').classList.toggle('active', page === 'telemetry');
+  document.getElementById('tabSetup').classList.toggle('active', page === 'setup');
   if (page === 'stats') renderStatsList(allStatsData);
+  if (page === 'telemetry' && latestTelemetry) {
+    renderTelemetryPage(latestTelemetry);
+    renderCoachPanel(latestTelemetry);
+    renderDrivingScore();
+  }
+  if (page === 'setup') {
+    renderUserSetups();
+    renderAutoSetups();
+    renderSetupLearning();
+  }
 }
 
 function renderStatsList(entries) {
@@ -2073,6 +2984,13 @@ document.addEventListener('keydown', e => {
 //  INIT
 // ═══════════════════════════════════════════════════
 refreshSessionButtons();
+loadUserSetups();
+loadSetupLearning();
+renderUserSetups();
+renderAutoSetups();
+renderSetupLearning();
+setActiveSetup(null, 'Aucun setup actif');
+renderDrivingScore();
 wsConnect();
 </script>
 </body>
