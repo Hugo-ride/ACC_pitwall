@@ -44,13 +44,12 @@ if DEV_MODE:
     DATA_DIR = local_data / "ACC_PitWall_Dev" / "data"
     RESOURCE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
     DEV_SEED_DIR = RESOURCE_DIR / "ACC_pitwall_donnees"
-    DEV_SEED_MARKER = DATA_DIR / ".seeded"
 else:
     DATA_DIR = Path.home() / "Documents" / "ACC_pitwall_donnees"
 
 
 def _seed_dev_data() -> None:
-    if not DEV_MODE or DEV_SEED_MARKER.exists():
+    if not DEV_MODE:
         return
     if not DEV_SEED_DIR.is_dir():
         raise FileNotFoundError(f"Dossier de données développeur introuvable : {DEV_SEED_DIR}")
@@ -66,8 +65,8 @@ def _seed_dev_data() -> None:
         if not target.exists():
             shutil.copy2(source, target)
             copied += 1
-    DEV_SEED_MARKER.write_text("seeded\n", encoding="utf-8")
-    print(f"  Données développeur initialisées : {copied} fichiers copiés dans {DATA_DIR}")
+    if copied:
+        print(f"  Données développeur initialisées : {copied} fichiers copiés dans {DATA_DIR}")
 
 LAP_STATUS = {
     "valid": "Valide",

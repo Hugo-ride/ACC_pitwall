@@ -7,6 +7,7 @@ block_cipher = None
 BASE_DIR = os.path.abspath(os.getcwd())
 DEV_BUILD = os.environ.get("ACC_PITWALL_DEV_BUILD") == "1"
 APP_NAME = "ACC_PitWall_Dev" if DEV_BUILD else "ACC_PitWall"
+from version import APP_VERSION
 
 def p(name):
     return os.path.join(BASE_DIR, name)

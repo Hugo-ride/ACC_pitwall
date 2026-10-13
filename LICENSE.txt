@@ -1,0 +1,13 @@
+ACC Pit Wall — Licence propriétaire
+
+Copyright (c) 2026 Hugo-ride
+
+Cette copie du logiciel est remise par son auteur à un destinataire choisi.
+Le destinataire peut installer et utiliser cette copie.
+
+Sans autorisation écrite préalable de l'auteur, il est interdit de vendre,
+redistribuer, publier, sous-licencier ou mettre à disposition une copie du
+logiciel, en tout ou en partie.
+
+Le logiciel est fourni « tel quel », sans garantie expresse ou implicite.
+Cette licence ne transfère aucun droit de propriété sur le logiciel.

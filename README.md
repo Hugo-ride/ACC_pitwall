@@ -15,6 +15,29 @@ Pour le générer sous Windows, installe Python 3.10 ou plus récent puis lance
 l'exécutable autonome dans `dist/ACC_PitWall.exe`. Seul ce fichier est à
 distribuer.
 
+### Installation, versions et mises à jour
+
+Installe [Inno Setup 6](https://jrsoftware.org/isinfo.php), puis lance
+`BUILD.bat installer` pour créer `dist/ACC_PitWall_Setup_v1.0.0.exe`.
+L'installateur s'exécute sans droits administrateur, affiche la licence et
+installe l'application dans le profil Windows de l'utilisateur. Après
+installation, ACC Pit Wall peut être lancé depuis le menu Démarrer ou le
+raccourci du bureau.
+
+La version de l'application est définie dans `version.py` et suit
+[SemVer](https://semver.org/) : incrémenter le dernier chiffre pour un correctif,
+le chiffre du milieu pour une évolution compatible, et le premier pour une
+version incompatible. Pour publier une version stable, mettre à jour
+`APP_VERSION`, pousser le commit, puis créer et pousser le tag correspondant
+(par exemple `v1.0.0`). GitHub Actions construit l'exécutable et l'installateur,
+puis les joint à une Release. L'application signale une mise à jour disponible
+au démarrage lorsqu'une Release stable plus récente existe.
+
+La signature numérique nécessite un certificat de signature de code valide.
+Sans certificat, les artefacts restent non signés. Pour activer la signature
+dans GitHub Actions, configurer les secrets de dépôt
+`WINDOWS_SIGNING_CERTIFICATE_BASE64` et `WINDOWS_SIGNING_CERTIFICATE_PASSWORD`.
+
 ### Version développeur avec les données fournies
 
 Lance `BUILD.bat dev` pour générer `dist/ACC_PitWall_Dev.exe`, avec les données

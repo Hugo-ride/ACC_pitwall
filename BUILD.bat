@@ -14,6 +14,7 @@ cd /d "%~dp0"
 
 set "APP_NAME=ACC_PitWall"
 set "DEV_BUILD=0"
+set "BUILD_INSTALLER=0"
 if /i "%~1"=="dev" (
     set "APP_NAME=ACC_PitWall_Dev"
     set "DEV_BUILD=1"
@@ -25,6 +26,7 @@ if /i "%~1"=="dev" (
         exit /b 1
     )
 )
+if /i "%~1"=="installer" set "BUILD_INSTALLER=1"
 
 set "PYTHON=%~dp0.venv\Scripts\python.exe"
 if not exist "%PYTHON%" (
@@ -56,6 +58,12 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
+for /f "tokens=2 delims== " %%V in ('findstr /b "APP_VERSION" version.py') do set "ACC_PITWALL_VERSION=%%~V"
+if not defined ACC_PITWALL_VERSION (
+    echo [ERREUR] Impossible de lire la version depuis version.py.
+    pause
+    exit /b 1
+)
 
 echo.
 echo [2/4] Nettoyage des anciens builds...
@@ -76,6 +84,28 @@ if errorlevel 1 (
     exit /b 1
 )
 
+if "%BUILD_INSTALLER%"=="1" (
+    echo.
+    echo [4/5] Creation de l'installateur...
+    set "ISCC="
+    for %%I in (ISCC.exe) do set "ISCC=%%~$PATH:I"
+    if not defined ISCC if exist "%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" set "ISCC=%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe"
+    if not defined ISCC if exist "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" set "ISCC=%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe"
+    if not defined ISCC if exist "%ProgramFiles%\Inno Setup 6\ISCC.exe" set "ISCC=%ProgramFiles%\Inno Setup 6\ISCC.exe"
+    if not defined ISCC (
+        echo [ERREUR] Inno Setup 6 est requis pour creer l'installateur.
+        echo Installe Inno Setup depuis https://jrsoftware.org/isinfo.php puis relance BUILD.bat installer.
+        pause
+        exit /b 1
+    )
+    "!ISCC!" "/DAppVersion=%ACC_PITWALL_VERSION%" "installer\ACC_PitWall.iss"
+    if errorlevel 1 (
+        echo [ERREUR] La creation de l'installateur a echoue.
+        pause
+        exit /b 1
+    )
+)
+
 echo.
 echo [4/4] Verification...
 if exist "dist\%APP_NAME%.exe" (
@@ -88,12 +118,14 @@ if exist "dist\%APP_NAME%.exe" (
     echo.
     echo   Pour utiliser : lancer directement dist\%APP_NAME%.exe
     echo.
+    if "%BUILD_INSTALLER%"=="1" echo   Installateur : dist\ACC_PitWall_Setup_v%ACC_PITWALL_VERSION%.exe
     set /p OPEN=Ouvrir le dossier dist ? ^(o/n^) : 
     if /i "!OPEN!"=="o" explorer "dist"
 ) else (
     echo.
     echo [ERREUR] L'executable n'a pas ete cree.
     echo Verifie les erreurs PyInstaller au-dessus.
+    exit /b 1
 )
 
 echo.
