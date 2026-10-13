@@ -114,6 +114,17 @@
   .update-banner-message { font-size: 13px; color: var(--text0); }
   .update-banner a { color: var(--amber); font-weight: 600; text-decoration: none; white-space: nowrap; }
   .update-banner a:hover { color: var(--text0); }
+  .update-banner button {
+    border: 0;
+    border-radius: 4px;
+    padding: 8px 10px;
+    background: var(--amber);
+    color: var(--bg0);
+    font: 600 12px var(--cond);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .update-banner button:disabled { opacity: .55; cursor: not-allowed; }
 
   /* ── SIDEBAR ── */
   .sidebar {
@@ -1284,7 +1295,8 @@
   </header>
   <div class="update-banner" id="updateBanner" role="status" aria-live="polite" hidden>
     <span class="update-banner-message" id="updateMessage"></span>
-    <a id="updateLink" href="#" target="_blank" rel="noopener noreferrer">Voir la mise à jour</a>
+    <button id="updateInstallButton" type="button" onclick="installUpdate()">Installer la mise à jour</button>
+    <a id="updateLink" href="#" target="_blank" rel="noopener noreferrer">Notes de version</a>
   </div>
 
   <!-- SIDEBAR -->
@@ -1813,8 +1825,12 @@ function compareVersions(left, right) {
   return 0;
 }
 
+let pendingUpdate = null;
+
 async function checkForUpdates() {
-  const currentVersion = new URLSearchParams(window.location.search).get('version');
+  const params = new URLSearchParams(window.location.search);
+  const currentVersion = params.get('version');
+  if (params.get('channel') === 'dev') return;
   if (!currentVersion) return;
 
   try {
@@ -1828,18 +1844,57 @@ async function checkForUpdates() {
     const release = await response.json();
     if (release.draft || release.prerelease) return;
     const latestVersion = String(release.tag_name || '').replace(/^v/i, '');
+    if (!/^\d+\.\d+\.\d+$/.test(latestVersion)) return;
     if (compareVersions(latestVersion, currentVersion) !== 1) return;
 
     const releaseUrl = new URL(release.html_url || '');
     if (releaseUrl.protocol !== 'https:' || releaseUrl.hostname !== 'github.com') {
       throw new Error('Lien de publication GitHub invalide');
     }
+    const assetName = `ACC_PitWall_Setup_v${latestVersion}.exe`;
+    const asset = (release.assets || []).find(item =>
+      item.name === assetName && item.state === 'uploaded' && item.browser_download_url
+    );
+    pendingUpdate = asset ? {
+      version: latestVersion,
+      url: asset.browser_download_url,
+      digest: asset.digest || '',
+    } : null;
     document.getElementById('updateMessage').textContent =
-      `La version ${latestVersion} est disponible (version actuelle : ${currentVersion}).`;
+      asset
+        ? `La version ${latestVersion} est disponible (version actuelle : ${currentVersion}).`
+        : `La version ${latestVersion} est publiée, mais son installateur est introuvable.`;
     document.getElementById('updateLink').href = releaseUrl.href;
+    const installButton = document.getElementById('updateInstallButton');
+    installButton.disabled = !asset;
+    installButton.textContent = asset ? 'Installer la mise à jour' : 'Installateur indisponible';
     document.getElementById('updateBanner').hidden = false;
   } catch (error) {
     console.warn('Vérification des mises à jour impossible :', error);
+  }
+}
+
+async function installUpdate() {
+  if (!pendingUpdate) return;
+  const button = document.getElementById('updateInstallButton');
+  if (!window.pywebview || !window.pywebview.api) {
+    alert('Le programme de mise à jour est indisponible dans cette fenêtre.');
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Téléchargement…';
+  try {
+    await window.pywebview.api.install_update(
+      pendingUpdate.url,
+      pendingUpdate.version,
+      pendingUpdate.digest,
+    );
+  } catch (error) {
+    console.error('Installation de la mise à jour impossible :', error);
+    alert(`La mise à jour n’a pas pu être lancée : ${error.message || error}`);
+    button.disabled = false;
+    button.textContent = 'Réessayer la mise à jour';
   }
 }
 
