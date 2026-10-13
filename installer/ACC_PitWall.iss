@@ -11,12 +11,14 @@ AppId={{6EBD3C8A-02D6-4FD5-8A58-E625548614D9}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
-DefaultDirName={localappdata}\Programs\ACC Pit Wall
+DefaultDirName={autopf}\ACC Pit Wall
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
-PrivilegesRequired=lowest
+PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+CloseApplications=yes
+RestartApplications=no
 LicenseFile=..\LICENSE.txt
 SetupIconFile=..\app_icon.ico
 UninstallDisplayIcon={app}\{#AppExeName}
@@ -37,7 +39,7 @@ Name: "desktopicon"; Description: "Créer un raccourci sur le bureau"; \
 Source: "..\dist\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{userprograms}\{#AppName}"; Filename: "{app}\{#AppExeName}"
+Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExeName}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; \
   Tasks: desktopicon
 
