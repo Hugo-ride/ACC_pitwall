@@ -15,6 +15,8 @@ cd /d "%~dp0"
 set "APP_NAME=ACC_PitWall"
 set "DEV_BUILD=0"
 set "BUILD_INSTALLER=0"
+set "INTERACTIVE=1"
+if defined ACC_PITWALL_NONINTERACTIVE set "INTERACTIVE=0"
 if /i "%~1"=="dev" (
     set "APP_NAME=ACC_PitWall_Dev"
     set "DEV_BUILD=1"
@@ -22,7 +24,7 @@ if /i "%~1"=="dev" (
         echo [ERREUR] Les donnees de developpement sont absentes.
         echo Place les fichiers JSON dans ACC_pitwall_donnees puis relance BUILD.bat dev.
         echo.
-        pause
+        if "%INTERACTIVE%"=="1" pause
         exit /b 1
     )
 )
@@ -35,7 +37,7 @@ if not exist "%PYTHON%" (
         echo [ERREUR] Python n'est pas installe ou pas dans le PATH.
         echo Installe Python 3.10 ou plus recent puis coche "Add Python to PATH".
         echo.
-        pause
+        if "%INTERACTIVE%"=="1" pause
         exit /b 1
     )
 
@@ -44,7 +46,7 @@ if not exist "%PYTHON%" (
     if errorlevel 1 (
         echo [ERREUR] Impossible de creer l'environnement Python.
         echo.
-        pause
+        if "%INTERACTIVE%"=="1" pause
         exit /b 1
     )
 )
@@ -55,13 +57,13 @@ if errorlevel 1 (
     echo.
     echo [ERREUR] Impossible d'installer les dependances.
     echo.
-    pause
+    if "%INTERACTIVE%"=="1" pause
     exit /b 1
 )
 for /f "tokens=2 delims== " %%V in ('findstr /b "APP_VERSION" version.py') do set "ACC_PITWALL_VERSION=%%~V"
 if not defined ACC_PITWALL_VERSION (
     echo [ERREUR] Impossible de lire la version depuis version.py.
-    pause
+    if "%INTERACTIVE%"=="1" pause
     exit /b 1
 )
 
@@ -80,7 +82,7 @@ if errorlevel 1 (
     echo [ERREUR] La compilation a echoue.
     echo Lis les lignes d'erreur juste au-dessus.
     echo.
-    pause
+    if "%INTERACTIVE%"=="1" pause
     exit /b 1
 )
 
@@ -95,13 +97,13 @@ if "%BUILD_INSTALLER%"=="1" (
     if not defined ISCC (
         echo [ERREUR] Inno Setup 6 est requis pour creer l'installateur.
         echo Installe Inno Setup depuis https://jrsoftware.org/isinfo.php puis relance BUILD.bat installer.
-        pause
+        if "%INTERACTIVE%"=="1" pause
         exit /b 1
     )
     "!ISCC!" "/DAppVersion=%ACC_PITWALL_VERSION%" "installer\ACC_PitWall.iss"
     if errorlevel 1 (
         echo [ERREUR] La creation de l'installateur a echoue.
-        pause
+        if "%INTERACTIVE%"=="1" pause
         exit /b 1
     )
 )
@@ -119,8 +121,10 @@ if exist "dist\%APP_NAME%.exe" (
     echo   Pour utiliser : lancer directement dist\%APP_NAME%.exe
     echo.
     if "%BUILD_INSTALLER%"=="1" echo   Installateur : dist\ACC_PitWall_Setup_v%ACC_PITWALL_VERSION%.exe
-    set /p OPEN=Ouvrir le dossier dist ? ^(o/n^) : 
-    if /i "!OPEN!"=="o" explorer "dist"
+    if "%INTERACTIVE%"=="1" (
+        set /p OPEN=Ouvrir le dossier dist ? ^(o/n^) :
+        if /i "!OPEN!"=="o" explorer "dist"
+    )
 ) else (
     echo.
     echo [ERREUR] L'executable n'a pas ete cree.
@@ -129,4 +133,4 @@ if exist "dist\%APP_NAME%.exe" (
 )
 
 echo.
-pause
+if "%INTERACTIVE%"=="1" pause

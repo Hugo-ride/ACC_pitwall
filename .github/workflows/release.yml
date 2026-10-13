@@ -34,7 +34,9 @@ jobs:
 
       - name: Build application and installer
         shell: cmd
-        run: BUILD.bat installer < NUL
+        env:
+          ACC_PITWALL_NONINTERACTIVE: "1"
+        run: BUILD.bat installer
 
       - name: Sign release files when certificate is configured
         shell: pwsh
