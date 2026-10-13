@@ -18,12 +18,4 @@ Tu peux démarrer ACC Pit Wall avant ou après avoir rejoint une session de jeu.
 
 Les tours, statistiques et sessions enregistrés sont conservés localement sur le PC, dans `Documents\ACC_pitwall_donnees`. Ils ne sont pas envoyés à un serveur distant. La connexion à Internet sert notamment à vérifier et télécharger les mises à jour.
 
-## Compilation (maintenance du projet)
 
-La compilation est destinée aux personnes qui modifient le code, pas à l’installation normale :
-
-- Installer Python 3.10 ou plus récent et [Inno Setup 6](https://jrsoftware.org/isinfo.php).
-- Lancer `BUILD.bat installer`.
-- L’installateur est créé dans `dist\ACC_PitWall_Setup_vX.Y.Z.exe`.
-
-Pour publier une version, mettre à jour `APP_VERSION` dans `version.py` et ajouter ses notes dans `CHANGELOG.md` sous `## [X.Y.Z] - AAAA-MM-JJ`. Pousser le commit sur `main`, puis pousser le tag correspondant (`vX.Y.Z`). GitHub Actions construit l’application et publie l’installateur avec ces notes.
