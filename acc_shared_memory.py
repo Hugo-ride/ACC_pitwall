@@ -235,23 +235,24 @@ class ACCSharedMemoryReader:
     SHM_STATIC   = "Local\\acpmf_static"
 
     def __init__(self):
-        self._physics_mm  = None
-        self._graphics_mm = None
-        self._static_mm   = None
+        self._mapping_handles = []
+        self._mapping_views = []
         self._connected   = False
+        self.last_connection_error = None
 
     def connect(self) -> bool:
         """Tente de se connecter à la mémoire partagée d'ACC."""
+        self.last_connection_error = None
         if sys.platform != "win32":
             print("[!] La mémoire partagée ACC est uniquement disponible sous Windows.")
+            self.last_connection_error = "La mémoire partagée ACC nécessite Windows."
             return False
         self.disconnect()
-        mappings = []
         mapping_handles = []
+        mapping_views = []
         close_handle = None
+        unmap_view = None
         try:
-            import mmap
-
             kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
             open_file_mapping = kernel32.OpenFileMappingW
             open_file_mapping.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR)
@@ -259,9 +260,13 @@ class ACCSharedMemoryReader:
             close_handle = kernel32.CloseHandle
             close_handle.argtypes = (wintypes.HANDLE,)
             close_handle.restype = wintypes.BOOL
+            map_view = kernel32.MapViewOfFile
+            map_view.argtypes = (wintypes.HANDLE, wintypes.DWORD, wintypes.DWORD, wintypes.DWORD, ctypes.c_size_t)
+            map_view.restype = ctypes.c_void_p
+            unmap_view = kernel32.UnmapViewOfFile
+            unmap_view.argtypes = (ctypes.c_void_p,)
+            unmap_view.restype = wintypes.BOOL
 
-            # mmap(tagname=...) creates a missing mapping on Windows; open existing
-            # ACC mappings first so Pit Wall never reserves their names itself.
             for name in (self.SHM_PHYSICS, self.SHM_GRAPHICS, self.SHM_STATIC):
                 handle = open_file_mapping(0x0004, False, name)  # FILE_MAP_READ
                 if not handle:
@@ -271,29 +276,28 @@ class ACCSharedMemoryReader:
                     return False
                 mapping_handles.append(handle)
 
-            physics_mm = mmap.mmap(-1, ctypes.sizeof(SPageFilePhysics),
-                                   self.SHM_PHYSICS, access=mmap.ACCESS_READ)
-            mappings.append(physics_mm)
-            graphics_mm = mmap.mmap(-1, ctypes.sizeof(SPageFileGraphic),
-                                    self.SHM_GRAPHICS, access=mmap.ACCESS_READ)
-            mappings.append(graphics_mm)
-            static_mm = mmap.mmap(-1, ctypes.sizeof(SPageFileStatic),
-                                  self.SHM_STATIC, access=mmap.ACCESS_READ)
-            mappings.append(static_mm)
-            self._physics_mm = physics_mm
-            self._graphics_mm = graphics_mm
-            self._static_mm = static_mm
+            for handle in mapping_handles:
+                view = map_view(handle, 0x0004, 0, 0, 0)  # Map the existing object read-only.
+                if not view:
+                    raise ctypes.WinError(ctypes.get_last_error())
+                mapping_views.append(view)
+
+            self._mapping_handles = mapping_handles
+            self._mapping_views = mapping_views
+            mapping_handles = []
+            mapping_views = []
             self._connected = True
+            self.last_connection_error = None
             return True
         except (OSError, ValueError) as e:
-            for mm in mappings:
-                try:
-                    mm.close()
-                except (OSError, ValueError) as close_error:
-                    print(f"[!] Impossible de fermer une mémoire ACC partielle : {close_error}")
+            if unmap_view is not None:
+                for view in mapping_views:
+                    if not unmap_view(view):
+                        print(f"[!] Impossible de libérer une vue ACC : {ctypes.WinError(ctypes.get_last_error())}")
             if getattr(e, "winerror", None) != 2:
                 print(f"[!] Impossible de se connecter à ACC : {e}")
                 print("    -> Vérifiez que le jeu et sa mémoire partagée sont accessibles.")
+                self.last_connection_error = str(e)
             self._connected = False
             return False
         finally:
@@ -306,17 +310,27 @@ class ACCSharedMemoryReader:
                         )
 
     def disconnect(self):
-        mappings = (self._physics_mm, self._graphics_mm, self._static_mm)
-        self._physics_mm = None
-        self._graphics_mm = None
-        self._static_mm = None
+        mappings = self._mapping_handles
+        views = self._mapping_views
+        self._mapping_handles = []
+        self._mapping_views = []
         self._connected = False
-        for mm in mappings:
-            if mm is not None:
-                try:
-                    mm.close()
-                except (OSError, ValueError) as e:
-                    print(f"[!] Impossible de fermer une mémoire ACC : {e}")
+        if not mappings and not views:
+            return
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        unmap_view = kernel32.UnmapViewOfFile
+        unmap_view.argtypes = (ctypes.c_void_p,)
+        unmap_view.restype = wintypes.BOOL
+        close_handle = kernel32.CloseHandle
+        close_handle.argtypes = (wintypes.HANDLE,)
+        close_handle.restype = wintypes.BOOL
+        for view in views:
+            if not unmap_view(ctypes.c_void_p(view)):
+                print(f"[!] Impossible de libérer une vue ACC : {ctypes.WinError(ctypes.get_last_error())}")
+        for handle in mappings:
+            if not close_handle(handle):
+                print(f"[!] Impossible de fermer une mémoire ACC : {ctypes.WinError(ctypes.get_last_error())}")
 
     def is_connected(self) -> bool:
         return self._connected
@@ -324,20 +338,16 @@ class ACCSharedMemoryReader:
     def _read_struct(self, mm, struct_type):
         if not mm:
             return None
-        mm.seek(0)
-        data = mm.read(ctypes.sizeof(struct_type))
-        if len(data) != ctypes.sizeof(struct_type):
-            raise ValueError(f"Lecture mémoire ACC incomplète : {len(data)} octets reçus.")
-        return struct_type.from_buffer_copy(data)
+        return struct_type.from_buffer_copy(ctypes.string_at(mm, ctypes.sizeof(struct_type)))
 
     def get_physics(self) -> SPageFilePhysics | None:
-        return self._read_struct(self._physics_mm, SPageFilePhysics)
+        return self._read_struct(self._mapping_views[0] if self._mapping_views else None, SPageFilePhysics)
 
     def get_graphics(self) -> SPageFileGraphic | None:
-        return self._read_struct(self._graphics_mm, SPageFileGraphic)
+        return self._read_struct(self._mapping_views[1] if self._mapping_views else None, SPageFileGraphic)
 
     def get_static(self) -> SPageFileStatic | None:
-        return self._read_struct(self._static_mm, SPageFileStatic)
+        return self._read_struct(self._mapping_views[2] if self._mapping_views else None, SPageFileStatic)
 
     def get_snapshot(self) -> dict | None:
         """Retourne un snapshot complet des données ACC."""
@@ -497,5 +507,6 @@ class ACCSharedMemoryReader:
             }
         except (OSError, ValueError, TypeError) as e:
             print(f"[!] Erreur lecture snapshot : {e}")
+            self.last_connection_error = str(e)
             self.disconnect()
             return None

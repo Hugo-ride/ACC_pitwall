@@ -567,6 +567,7 @@ class ACCServer:
         self._force_new_session = False
         self._last_saved_lap_signature = None
         self._last_seen_lap_signature = None
+        self._last_acc_status = "waiting" if self.reader else "unavailable"
 
         # Enregistrement robuste des tours :
         # ACC peut mettre à jour completed_laps avant iLastTime/fuelXLap.
@@ -579,6 +580,25 @@ class ACCServer:
         self.clients.add(ws)
         print(f"  🔌  Interface HTML connectée ({len(self.clients)} client(s))")
         await self.send(ws, {"type": "all_stats", "data": load_all_stats()})
+        await self.send(ws, self._acc_status_message())
+
+    def _acc_status_message(self):
+        if not self.reader:
+            return {
+                "type": "acc_status",
+                "status": "unavailable",
+                "detail": "Le lecteur de mémoire partagée ACC n'est pas chargé.",
+            }
+        if self.connected:
+            return {"type": "acc_status", "status": "live"}
+        if self.reader.is_connected():
+            return {"type": "acc_status", "status": "connected"}
+        detail = getattr(self.reader, "last_connection_error", None)
+        return {
+            "type": "acc_status",
+            "status": "error" if detail else "waiting",
+            "detail": detail or "En attente de la mémoire partagée d'Assetto Corsa Competizione.",
+        }
 
     def unregister(self, ws):
         self.clients.discard(ws)
@@ -747,13 +767,21 @@ class ACCServer:
             if ok:
                 print("  🟢  ACC détecté !")
                 await self.broadcast({"type": "acc_status", "status": "connected"})
+                self._last_acc_status = "connected"
+            else:
+                status = self._acc_status_message()
+                if status["status"] != self._last_acc_status:
+                    await self.broadcast(status)
+                    self._last_acc_status = status["status"]
             return
 
         snap = self.reader.get_snapshot()
         if snap is None:
-            if self.connected:
-                self.connected = False
-                await self.broadcast({"type": "acc_status", "status": "disconnected"})
+            self.connected = False
+            status = self._acc_status_message()
+            if status["status"] != self._last_acc_status:
+                await self.broadcast(status)
+                self._last_acc_status = status["status"]
             return
 
         status = snap.get("status", "OFF")
@@ -762,6 +790,7 @@ class ACCServer:
             if not self.connected:
                 self.connected = True
                 await self.broadcast({"type": "acc_status", "status": "live"})
+                self._last_acc_status = "live"
 
             car = snap["car"]
             track = snap["track"]
@@ -891,7 +920,9 @@ class ACCServer:
                 self._pending_lap_number = None
                 self._pending_lap_started_at = None
                 self._last_fuel_remaining = None
-                await self.broadcast({"type": "acc_status", "status": "offline"})
+                status_message = self._acc_status_message()
+                await self.broadcast(status_message)
+                self._last_acc_status = status_message["status"]
 
     def _fmt(self, sec):
         m = int(sec // 60)

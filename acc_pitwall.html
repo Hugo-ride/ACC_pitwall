@@ -1727,7 +1727,7 @@ function wsConnect() {
 
   ws.onopen = () => {
     clearTimeout(wsReconnectTimer);
-    setServerStatus('connected');
+    setServerStatus('waiting');
   };
 
   ws.onclose = () => {
@@ -1843,17 +1843,24 @@ async function checkForUpdates() {
   }
 }
 
-function setServerStatus(state) {
+function setServerStatus(state, detail = '') {
   const dot  = document.getElementById('statusDot');
   const text = document.getElementById('statusText');
   dot.className = 'status-dot';
+  text.title = detail;
 
   if (state === 'live' || state === 'data') {
     dot.classList.add('live');
     text.textContent = 'SESSION ACTIVE';
   } else if (state === 'connected') {
     dot.classList.add('warn');
-    text.textContent = 'SERVEUR CONNECTÉ';
+    text.textContent = 'ACC DÉTECTÉ';
+  } else if (state === 'waiting') {
+    dot.classList.add('warn');
+    text.textContent = 'ATTENTE D’ACC';
+  } else if (state === 'error' || state === 'unavailable') {
+    dot.classList.add('warn');
+    text.textContent = state === 'error' ? 'ACC INACCESSIBLE' : 'LECTEUR ACC INDISPONIBLE';
   } else {
     text.textContent = 'SERVEUR HORS LIGNE';
     clearTrackLocation();
@@ -1872,9 +1879,12 @@ function handleServerMessage(msg) {
         setServerStatus('live');
       } else if (msg.status === 'connected') {
         if (!hasLiveData) setServerStatus('connected');
+      } else if (msg.status === 'waiting' || msg.status === 'error' || msg.status === 'unavailable') {
+        hasLiveData = false;
+        setServerStatus(msg.status, msg.detail || '');
       } else {
         hasLiveData = false;
-        setServerStatus('offline');
+        setServerStatus('waiting', msg.detail || '');
       }
       break;
 

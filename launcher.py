@@ -39,6 +39,9 @@ class _UIRequestHandler(SimpleHTTPRequestHandler):
             return os.path.join(BASE_PATH, route)
         return os.path.join(BASE_PATH, "__not_found__")
 
+    def log_message(self, format, *args):
+        pass
+
 
 def _start_ui_server():
     if not os.path.isfile(HTML_FILE):
