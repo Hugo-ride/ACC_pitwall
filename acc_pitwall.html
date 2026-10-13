@@ -1727,7 +1727,12 @@
 // ═══════════════════════════════════════════════════
 //  WEBSOCKET — connexion au serveur Python
 // ═══════════════════════════════════════════════════
-const WS_URL = 'ws://127.0.0.1:8765';
+const requestedWsPort = new URLSearchParams(window.location.search).get('ws_port');
+const parsedWsPort = Number(requestedWsPort);
+const WS_PORT = /^\d+$/.test(requestedWsPort || '') && parsedWsPort >= 1 && parsedWsPort <= 65535
+  ? parsedWsPort
+  : 8765;
+const WS_URL = `ws://127.0.0.1:${WS_PORT}`;
 let ws = null;
 let wsReconnectTimer = null;
 let hasLiveData = false;

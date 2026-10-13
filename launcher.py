@@ -9,9 +9,7 @@ import os
 import re
 import hashlib
 import threading
-import socket
 import tempfile
-import time
 import ctypes
 from ctypes import wintypes
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -207,28 +205,61 @@ if DEV_MODE:
 
 APP_NAME    = "ACC Pit Wall Dev" if DEV_MODE else "ACC Pit Wall"
 from version import APP_VERSION
-WS_HOST     = "127.0.0.1"
-WS_PORT     = 8765
 HTML_FILE   = resource_path("acc_pitwall.html")
 ICON_FILE   = resource_path("app_icon.ico")
 
 # ── Serveur WebSocket ────────────────────────────────────────────
 _server_running = False
 _server_error = None
+_server_ready = threading.Event()
+_server_port = None
+_runtime_log_file = None
 
-def _is_port_free(port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex((WS_HOST, port)) != 0
+def _configure_runtime_logging():
+    global _runtime_log_file
+    streams = (sys.stdout, sys.stderr)
+    unicode_streams = all(stream is not None for stream in streams)
+    if unicode_streams:
+        for stream in streams:
+            try:
+                "ACC Pit Wall — 🏁".encode(stream.encoding or "utf-8")
+            except (LookupError, UnicodeEncodeError):
+                unicode_streams = False
+                break
+    if getattr(sys, "frozen", False) or not unicode_streams:
+        local_data = os.environ.get(
+            "LOCALAPPDATA",
+            os.path.join(os.path.expanduser("~"), "AppData", "Local"),
+        )
+        app_data = "ACC_PitWall_Dev" if DEV_MODE else "ACC_PitWall"
+        log_directory = os.path.join(local_data, app_data)
+        os.makedirs(log_directory, exist_ok=True)
+        _runtime_log_file = open(
+            os.path.join(log_directory, "app.log"),
+            "a",
+            encoding="utf-8",
+            buffering=1,
+        )
+        sys.stdout = _runtime_log_file
+        sys.stderr = _runtime_log_file
+
+def _publish_server_port(port):
+    global _server_port
+    _server_port = port
+    _server_ready.set()
 
 def _run_server():
-    global _server_error, _server_running
+    global _server_error, _server_running, _server_port
     _server_running = True
+    _server_error = None
+    _server_port = None
+    _server_ready.clear()
     try:
         import asyncio
         if BASE_PATH not in sys.path:
             sys.path.insert(0, BASE_PATH)
         from server import ACCServer
-        asyncio.run(ACCServer().run())
+        asyncio.run(ACCServer(port=0, on_listening=_publish_server_port).run())
     except Exception as exc:
         _server_error = exc
         import traceback
@@ -237,17 +268,21 @@ def _run_server():
         _server_running = False
 
 def _wait_for_server(server_thread, timeout=10.0):
-    end = time.time() + timeout
-    while time.time() < end:
-        if not _is_port_free(WS_PORT):
-            return True
-        if not server_thread.is_alive():
-            return False
-        time.sleep(0.1)
-    return False
+    return _server_ready.wait(timeout) and server_thread.is_alive()
 
 # ── Point d'entrée ───────────────────────────────────────────────
 if __name__ == '__main__':
+    try:
+        _configure_runtime_logging()
+    except OSError as exc:
+        ctypes.windll.user32.MessageBoxW(
+            None,
+            f"Impossible de créer le journal de l’application : {exc}",
+            APP_NAME,
+            0x10,
+        )
+        raise SystemExit(1)
+
     # 1. Démarrer le serveur WebSocket en arrière-plan
     server_thread = threading.Thread(target=_run_server, daemon=True)
     server_thread.start()
@@ -255,7 +290,7 @@ if __name__ == '__main__':
         reason = f"\n\nDétail : {_server_error}" if _server_error else ""
         message = (
             "Le serveur ACC Pit Wall n'a pas démarré. "
-            "Vérifie les données de l'application et que le port local 8765 est libre."
+            "Vérifie les données de l'application et que le réseau local est disponible."
             f"{reason}"
         )
         ctypes.windll.user32.MessageBoxW(None, message, APP_NAME, 0x10)
@@ -270,6 +305,7 @@ if __name__ == '__main__':
     query = urlencode({
         "version": APP_VERSION,
         "channel": "dev" if DEV_MODE else "stable",
+        "ws_port": _server_port,
     })
     url = f"http://127.0.0.1:{ui_server.server_port}/acc_pitwall.html?{query}"
 

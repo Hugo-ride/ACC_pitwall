@@ -554,8 +554,10 @@ PORT = 8765
 
 
 class ACCServer:
-    def __init__(self):
+    def __init__(self, port=PORT, on_listening=None):
         self.reader = ACCSharedMemoryReader() if SHM_AVAILABLE else None
+        self.port = port
+        self.on_listening = on_listening
         self.clients = set()
 
         self.current_car = None
@@ -946,15 +948,20 @@ class ACCServer:
         print("\n" + "=" * 55)
         print("  🏁  ACC FUEL STRATEGY — Serveur")
         print("=" * 55)
-        print(f"  WebSocket : ws://{HOST}:{PORT}")
         print("  Mode      : serveur local de ACC Pit Wall")
         print(f"  Données   : {DATA_DIR}")
         print("  Lancez launcher.py pour ouvrir l'interface native")
         print("  Ctrl+C pour arrêter")
         print("=" * 55 + "\n")
 
-        acc_task = asyncio.create_task(self.acc_loop())
-        async with websockets.serve(self.ws_handler, HOST, PORT):
+        async with websockets.serve(self.ws_handler, HOST, self.port) as websocket_server:
+            if not websocket_server.sockets:
+                raise RuntimeError("Le serveur WebSocket n’a ouvert aucun socket.")
+            self.port = int(websocket_server.sockets[0].getsockname()[1])
+            print(f"  WebSocket : ws://{HOST}:{self.port}")
+            if self.on_listening is not None:
+                self.on_listening(self.port)
+            acc_task = asyncio.create_task(self.acc_loop())
             await acc_task
 
 
