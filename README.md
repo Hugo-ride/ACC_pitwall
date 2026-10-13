@@ -2,23 +2,55 @@
 
 Outil de stratégie essence pour **Assetto Corsa Competizione**, avec une interface web en HTML et un serveur Python qui lit les données du jeu en temps réel.
 
+## Utilisation de l'exécutable
+
+Lance `dist/ACC_PitWall.exe` après avoir rejoint une session ACC. L'exécutable
+contient l'interface, le serveur et leurs dépendances ; Python et les autres
+fichiers du projet ne sont pas nécessaires sur le PC utilisé. L'application
+retente la connexion à la mémoire partagée du jeu si celle-ci n'est pas encore
+disponible. Les statistiques restent dans `Documents/ACC_pitwall_donnees/`.
+
+Pour le générer sous Windows, installe Python 3.10 ou plus récent puis lance
+`BUILD.bat`. Le script prépare son environnement de compilation et écrit
+l'exécutable autonome dans `dist/ACC_PitWall.exe`. Seul ce fichier est à
+distribuer.
+
+### Version développeur avec les données fournies
+
+Lance `BUILD.bat dev` pour générer `dist/ACC_PitWall_Dev.exe`, avec les données
+du dossier `ACC_pitwall_donnees` intégrées comme jeu de départ. Au premier
+lancement, elles sont copiées dans `%LOCALAPPDATA%\ACC_PitWall_Dev\data` et
+l'application utilise cette copie indépendante pour ne pas modifier les
+fichiers fournis. Cette version conserve ses changements de test entre les
+lancements et garde son profil d'interface séparé de la version normale.
+Pour tester depuis les sources dans PowerShell :
+
+```powershell
+$env:ACC_PITWALL_DEV = "1"
+.\.venv\Scripts\python.exe .\launcher.py
+```
+
+## Lancement depuis les sources (développement)
+
 ---
 
 ## 📁 Structure des fichiers
 
 ```text
 ACC_pitwall/
-├── server.py                  # Serveur WebSocket à lancer
-├── acc_pitwall.html     # Interface web à ouvrir dans le navigateur
+├── launcher.py                # Lanceur natif (serveur + interface)
+├── server.py                  # Serveur WebSocket
+├── acc_pitwall.html            # Interface intégrée à l'exécutable
 ├── fuel_calculator.py         # Calculs de stratégie + sauvegarde JSON
 ├── acc_shared_memory.py       # Lecture mémoire partagée ACC, Windows uniquement
 ├── acc_live_logger.py         # Ancien logger console / simulation, optionnel
+├── ACC_pitwall_donnees/       # Données de départ de la version développeur
 └── README.md
 ```
 
 ---
 
-## 🚀 Installation
+## Lancement manuel depuis les sources
 
 ### Prérequis
 
@@ -35,7 +67,7 @@ pip install websockets
 
 ---
 
-## ▶️ Lancement
+### Lancement du serveur et de l'interface
 
 ### 1. Lancer le serveur Python
 
@@ -72,6 +104,8 @@ L'interface se connecte automatiquement au serveur WebSocket.
 ### Interface web
 
 - Affiche les données live d'ACC
+- Affiche les commandes (gaz/frein) et les données pneus/freins
+- Permet de rechercher les sessions dans les statistiques
 - Détecte automatiquement la voiture et le circuit
 - Affiche le carburant restant
 - Affiche le dernier tour, le meilleur tour et la consommation moyenne
@@ -183,7 +217,7 @@ Les données sauvegardées permettent de retrouver automatiquement :
 
 ---
 
-## 🛠️ Utilisation conseillée
+## 🛠️ Utilisation conseillée depuis les sources
 
 1. Lancer ACC
 2. Entrer dans une session Practice, Qualifying ou Race
@@ -204,9 +238,9 @@ python server.py
 
 - Le mode live fonctionne uniquement sous Windows.
 - ACC doit être lancé et une session doit être active.
-- Le fichier HTML doit rester ouvert pendant l'utilisation.
-- Le serveur doit rester lancé pendant l'utilisation.
-- Si l'interface affiche serveur hors ligne, vérifier que `server.py` est bien lancé.
+- En mode sources, le fichier HTML et le serveur doivent rester ouverts.
+- Avec `dist/ACC_PitWall.exe`, le serveur et l'interface démarrent ensemble.
+- En mode sources, si l'interface affiche serveur hors ligne, vérifier que `server.py` est bien lancé.
 - Si ACC n'est pas détecté, vérifier que le jeu est bien en session active.
 
 ---
@@ -215,7 +249,7 @@ python server.py
 
 `acc_live_logger.py` peut encore servir pour tester l'ancien mode console ou simuler des tours, mais il n'est plus nécessaire pour l'utilisation normale avec l'interface HTML.
 
-L'utilisation principale est maintenant :
+Le lancement de développement se fait avec :
 
 ```bash
 python server.py

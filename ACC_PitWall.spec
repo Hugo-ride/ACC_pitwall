@@ -5,6 +5,8 @@ import os
 
 block_cipher = None
 BASE_DIR = os.path.abspath(os.getcwd())
+DEV_BUILD = os.environ.get("ACC_PITWALL_DEV_BUILD") == "1"
+APP_NAME = "ACC_PitWall_Dev" if DEV_BUILD else "ACC_PitWall"
 
 def p(name):
     return os.path.join(BASE_DIR, name)
@@ -26,9 +28,13 @@ for filename in required_files:
     else:
         print(f"ATTENTION : fichier manquant ignore : {filename}")
 
-circuits_dir = p("carte_circuits")
-if os.path.isdir(circuits_dir):
-    datas.append((circuits_dir, "carte_circuits"))
+if DEV_BUILD:
+    dev_data_dir = p("ACC_pitwall_donnees")
+    if not os.path.isdir(dev_data_dir) or not any(
+        filename.lower().endswith(".json") for filename in os.listdir(dev_data_dir)
+    ):
+        raise FileNotFoundError(f"Données développeur introuvables : {dev_data_dir}")
+    datas.append((dev_data_dir, "ACC_pitwall_donnees"))
 
 hiddenimports = [
     "server",
@@ -46,12 +52,9 @@ hiddenimports = [
     "webview.platforms",
     "webview.platforms.winforms",
     "webview.js",
-    "webview.js.css",
-    "webview.js.dom",
 
     "clr",
     "System",
-    "System.Windows.Forms",
 
     "asyncio",
     "ctypes",
@@ -84,7 +87,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="ACC_PitWall",
+    name=APP_NAME,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

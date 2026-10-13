@@ -245,30 +245,47 @@ class ACCSharedMemoryReader:
         if sys.platform != "win32":
             print("[!] La mémoire partagée ACC est uniquement disponible sous Windows.")
             return False
+        self.disconnect()
+        mappings = []
         try:
             import mmap
-            self._physics_mm  = mmap.mmap(-1, ctypes.sizeof(SPageFilePhysics),
-                                           self.SHM_PHYSICS,  access=mmap.ACCESS_READ)
-            self._graphics_mm = mmap.mmap(-1, ctypes.sizeof(SPageFileGraphic),
-                                           self.SHM_GRAPHICS, access=mmap.ACCESS_READ)
-            self._static_mm   = mmap.mmap(-1, ctypes.sizeof(SPageFileStatic),
-                                           self.SHM_STATIC,   access=mmap.ACCESS_READ)
+            physics_mm = mmap.mmap(-1, ctypes.sizeof(SPageFilePhysics),
+                                   self.SHM_PHYSICS, access=mmap.ACCESS_READ)
+            mappings.append(physics_mm)
+            graphics_mm = mmap.mmap(-1, ctypes.sizeof(SPageFileGraphic),
+                                    self.SHM_GRAPHICS, access=mmap.ACCESS_READ)
+            mappings.append(graphics_mm)
+            static_mm = mmap.mmap(-1, ctypes.sizeof(SPageFileStatic),
+                                  self.SHM_STATIC, access=mmap.ACCESS_READ)
+            mappings.append(static_mm)
+            self._physics_mm = physics_mm
+            self._graphics_mm = graphics_mm
+            self._static_mm = static_mm
             self._connected = True
             return True
-        except Exception as e:
+        except (OSError, ValueError) as e:
+            for mm in mappings:
+                try:
+                    mm.close()
+                except (OSError, ValueError) as close_error:
+                    print(f"[!] Impossible de fermer une mémoire ACC partielle : {close_error}")
             print(f"[!] Impossible de se connecter à ACC : {e}")
             print("    -> Assurez-vous qu'ACC est lancé et qu'une session est active.")
             self._connected = False
             return False
 
     def disconnect(self):
-        for mm in [self._physics_mm, self._graphics_mm, self._static_mm]:
-            if mm:
+        mappings = (self._physics_mm, self._graphics_mm, self._static_mm)
+        self._physics_mm = None
+        self._graphics_mm = None
+        self._static_mm = None
+        self._connected = False
+        for mm in mappings:
+            if mm is not None:
                 try:
                     mm.close()
-                except:
-                    pass
-        self._connected = False
+                except (OSError, ValueError) as e:
+                    print(f"[!] Impossible de fermer une mémoire ACC : {e}")
 
     def is_connected(self) -> bool:
         return self._connected
@@ -278,6 +295,8 @@ class ACCSharedMemoryReader:
             return None
         mm.seek(0)
         data = mm.read(ctypes.sizeof(struct_type))
+        if len(data) != ctypes.sizeof(struct_type):
+            raise ValueError(f"Lecture mémoire ACC incomplète : {len(data)} octets reçus.")
         return struct_type.from_buffer_copy(data)
 
     def get_physics(self) -> SPageFilePhysics | None:
@@ -445,6 +464,7 @@ class ACCSharedMemoryReader:
                 "is_timed_race":     bool(stat.isTimedRace),
                 "has_extra_lap":     bool(stat.hasExtraLap),
             }
-        except Exception as e:
+        except (OSError, ValueError, TypeError) as e:
             print(f"[!] Erreur lecture snapshot : {e}")
+            self.disconnect()
             return None

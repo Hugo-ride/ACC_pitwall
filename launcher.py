@@ -24,7 +24,14 @@ def resource_path(rel):
     return os.path.join(BASE_PATH, rel)
 
 # ── Constantes ──────────────────────────────────────────────────
-APP_NAME    = "ACC Pit Wall"
+DEV_MODE    = os.environ.get("ACC_PITWALL_DEV") == "1" or (
+    getattr(sys, "frozen", False)
+    and os.path.basename(sys.executable).lower().endswith("_dev.exe")
+)
+if DEV_MODE:
+    os.environ["ACC_PITWALL_DEV"] = "1"
+
+APP_NAME    = "ACC Pit Wall Dev" if DEV_MODE else "ACC Pit Wall"
 APP_VERSION = "1.0.0"
 WS_HOST     = "127.0.0.1"
 WS_PORT     = 8765
@@ -82,7 +89,11 @@ if __name__ == '__main__':
     )
 
     # storage_path : conserve localStorage/cookies entre les sessions
-    storage = os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'ACC_PitWall')
+    storage_name = "ACC_PitWall_Dev" if DEV_MODE else "ACC_PitWall"
+    storage = os.path.join(
+        os.environ.get("LOCALAPPDATA", os.path.join(os.path.expanduser('~'), 'AppData', 'Local')),
+        storage_name,
+    )
     os.makedirs(storage, exist_ok=True)
 
     try:
