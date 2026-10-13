@@ -1,5 +1,11 @@
 # Notes de version
 
+## [1.2.1] - 2026-10-14
+
+### Corrections
+
+- La liste des statistiques affiche désormais uniquement les circuits au départ ; voitures, dates et sessions s'ouvrent progressivement à la demande, avec des cartes de taille cohérente.
+
 ## [1.2.0] - 2026-10-14
 
 ### Améliorations

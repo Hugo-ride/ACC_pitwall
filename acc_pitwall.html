@@ -676,8 +676,8 @@
     background: var(--bg2);
     border: 1px solid var(--line);
     border-radius: 8px;
-    margin-bottom: 5px;
     overflow: hidden;
+    flex: 0 0 auto;
   }
   .stats-toggle {
     width: 100%;
@@ -717,11 +717,12 @@
   .stats-collapsible.closed > .stats-toggle .stats-chevron {
     transform: rotate(-90deg);
   }
-  .stats-children { padding: 0 7px 7px; }
+  .stats-children { display: flex; flex-direction: column; gap: 7px; padding: 0 7px 7px; }
   .stats-collapsible.closed > .stats-children {
     display: none;
   }
   .stats-collapsible.track-level { border-left: 3px solid var(--red); background: radial-gradient(ellipse at 0 0, rgba(232,64,64,.09), transparent 68%), var(--bg2); }
+  .stats-collapsible.track-level > .stats-toggle { min-height: 62px; }
   .stats-collapsible.track-level > .stats-toggle .stats-toggle-title { font-size: 16px; }
   .stats-collapsible.car-level { margin-left: 9px; background: var(--bg1); border-color: var(--line2); }
   .stats-collapsible.car-level > .stats-toggle .stats-toggle-title { color: #a9cfff; font-size: 13px; letter-spacing: .08em; }
@@ -2796,13 +2797,14 @@ function toggleStatsBlock(button) {
   const box = button.closest('.stats-collapsible');
   if (!box) return;
   box.classList.toggle('closed');
+  button.setAttribute('aria-expanded', String(!box.classList.contains('closed')));
 }
 
 function makeStatsBlock(title, subtitle, levelClass='', startClosed=false) {
   const box = document.createElement('div');
   box.className = `stats-collapsible ${levelClass}${startClosed ? ' closed' : ''}`;
   box.innerHTML = `
-    <button class="stats-toggle" type="button" onclick="toggleStatsBlock(this)">
+    <button class="stats-toggle" type="button" aria-expanded="${!startClosed}" onclick="toggleStatsBlock(this)">
       <div class="stats-toggle-main">
         <div class="stats-toggle-title">${title}</div>
         <div class="stats-toggle-sub">${subtitle}</div>
@@ -3178,7 +3180,7 @@ function renderStatsList(entries) {
       displayStatsName(track),
       `${Object.keys(cars).length} voiture${Object.keys(cars).length>1?'s':''} · ${trackStats.total_sessions} session${trackStats.total_sessions === 1 ? '' : 's'}`,
       'track-level',
-      false
+      true
     );
     const trackChildren = trackBox.querySelector('.stats-children');
 

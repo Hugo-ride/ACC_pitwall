@@ -13,7 +13,7 @@ Le serveur local choisit automatiquement un port disponible à chaque lancement.
 Si la connexion locale échoue, le journal de diagnostic est disponible dans
 `%LOCALAPPDATA%\ACC_PitWall\app.log`.
 Pour une installation classique, utilise plutôt
-`dist/ACC_PitWall_Setup_v1.2.0.exe`.
+`dist/ACC_PitWall_Setup_v1.2.1.exe`.
 
 Pour le générer sous Windows, installe Python 3.10 ou plus récent puis lance
 `BUILD.bat`. Le script prépare son environnement de compilation et écrit
@@ -23,7 +23,7 @@ distribuer.
 ### Installation, versions et mises à jour
 
 Installe [Inno Setup 6](https://jrsoftware.org/isinfo.php), puis lance
-`BUILD.bat installer` pour créer `dist/ACC_PitWall_Setup_v1.2.0.exe`.
+`BUILD.bat installer` pour créer `dist/ACC_PitWall_Setup_v1.2.1.exe`.
 L'installateur affiche la licence et demande les droits administrateur Windows
 pour installer l'application dans `C:\Program Files\ACC Pit Wall`. Il essaie
 de fermer ACC Pit Wall si l'application est encore ouverte pendant une mise à
