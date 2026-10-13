@@ -9,6 +9,8 @@ contient l'interface, le serveur et leurs dépendances ; Python et les autres
 fichiers du projet ne sont pas nécessaires sur le PC utilisé. L'application
 retente la connexion à la mémoire partagée du jeu si celle-ci n'est pas encore
 disponible. Les statistiques restent dans `Documents/ACC_pitwall_donnees/`.
+Pour une installation classique, utilise plutôt
+`dist/ACC_PitWall_Setup_v1.0.0.exe`.
 
 Pour le générer sous Windows, installe Python 3.10 ou plus récent puis lance
 `BUILD.bat`. Le script prépare son environnement de compilation et écrit
@@ -67,7 +69,6 @@ ACC_pitwall/
 ├── fuel_calculator.py         # Calculs de stratégie + sauvegarde JSON
 ├── acc_shared_memory.py       # Lecture mémoire partagée ACC, Windows uniquement
 ├── acc_live_logger.py         # Ancien logger console / simulation, optionnel
-├── ACC_pitwall_donnees/       # Données de départ de la version développeur
 └── README.md
 ```
 
