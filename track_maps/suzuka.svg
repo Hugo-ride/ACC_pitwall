@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 150" role="img" aria-label="Carte de Japan avec emplacement du circuit">
+  <path d="M178.2,40.5 L169.6,52.2 L169.7,64.1 L166.2,73.4 L167.8,79.2 L163.0,87.4 L151.0,92.8 L134.6,93.5 L121.2,106.8 L114.9,102.3 L114.6,93.6 L98.3,96.2 L87.2,101.7 L76.3,101.9 L85.7,110.4 L79.5,130.1 L73.5,135.0 L68.9,130.5 L71.2,120.0 L65.3,116.7 L61.5,108.7 L70.3,105.1 L75.2,97.9 L84.7,91.9 L91.5,83.9 L110.1,80.5 L120.2,82.8 L129.9,62.2 L136.2,67.8 L149.9,56.2 L155.2,51.7 L161.1,37.5 L159.5,24.5 L163.5,17.1 L173.4,15.0 L178.5,31.1 L178.2,40.5Z" fill="#26303a" fill-opacity=".88" stroke="#6e7b89" stroke-opacity=".78" stroke-width="1.15" stroke-linejoin="round"/>
+  <circle cx="128.2" cy="90.8" r="8" fill="#e84040" fill-opacity=".16"/>
+  <circle cx="128.2" cy="90.8" r="4.2" fill="#f5a623" stroke="#101215" stroke-width="1.8"/>
+  <circle cx="128.2" cy="90.8" r="1.2" fill="#fff"/>
+</svg>

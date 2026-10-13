@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 150" role="img" aria-label="Carte de Netherlands avec emplacement du circuit">
+  <path d="M166.3,16.3 L171.4,31.2 L164.6,71.8 L157.7,88.5 L141.4,88.5 L145.9,135.0 L131.0,124.6 L113.8,105.2 L88.5,114.4 L68.6,111.0 L68.6,111.0 L82.6,98.8 L106.5,33.6 L143.7,15.0 L166.3,16.3Z" fill="#26303a" fill-opacity=".88" stroke="#6e7b89" stroke-opacity=".78" stroke-width="1.15" stroke-linejoin="round"/>
+  <circle cx="102.0" cy="64.7" r="8" fill="#e84040" fill-opacity=".16"/>
+  <circle cx="102.0" cy="64.7" r="4.2" fill="#f5a623" stroke="#101215" stroke-width="1.8"/>
+  <circle cx="102.0" cy="64.7" r="1.2" fill="#fff"/>
+</svg>

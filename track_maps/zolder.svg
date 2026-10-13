@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 150" role="img" aria-label="Carte de Belgium avec emplacement du circuit">
+  <path d="M191.5,56.4 L187.0,98.1 L176.8,100.4 L172.5,135.0 L138.2,106.9 L118.1,111.7 L90.7,82.6 L72.5,57.8 L54.2,56.8 L48.5,35.1 L80.0,23.0 L80.0,23.0 L80.0,23.0 L108.7,27.8 L145.1,15.0 L169.9,42.0 L191.5,56.4Z" fill="#26303a" fill-opacity=".88" stroke="#6e7b89" stroke-opacity=".78" stroke-width="1.15" stroke-linejoin="round"/>
+  <circle cx="156.2" cy="45.0" r="8" fill="#e84040" fill-opacity=".16"/>
+  <circle cx="156.2" cy="45.0" r="4.2" fill="#f5a623" stroke="#101215" stroke-width="1.8"/>
+  <circle cx="156.2" cy="45.0" r="1.2" fill="#fff"/>
+</svg>

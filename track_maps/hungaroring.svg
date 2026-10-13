@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 150" role="img" aria-label="Carte de Hungary avec emplacement du circuit">
+  <path d="M194.9,23.4 L210.7,34.8 L212.6,46.1 L195.3,54.9 L181.8,83.3 L164.6,111.7 L141.7,119.6 L124.0,117.7 L102.2,128.7 L102.2,128.7 L91.5,135.0 L68.0,126.9 L46.7,109.0 L37.7,103.8 L32.1,89.7 L27.4,89.2 L36.8,62.2 L31.3,53.2 L47.3,53.1 L49.5,36.0 L64.0,46.7 L74.5,51.3 L98.4,46.1 L100.7,37.7 L112.0,36.5 L125.8,30.0 L128.9,32.6 L142.3,27.4 L149.0,17.6 L158.3,15.0 L188.8,27.7 L194.9,23.4Z" fill="#26303a" fill-opacity=".88" stroke="#6e7b89" stroke-opacity=".78" stroke-width="1.15" stroke-linejoin="round"/>
+  <circle cx="114.2" cy="58.6" r="8" fill="#e84040" fill-opacity=".16"/>
+  <circle cx="114.2" cy="58.6" r="4.2" fill="#f5a623" stroke="#101215" stroke-width="1.8"/>
+  <circle cx="114.2" cy="58.6" r="1.2" fill="#fff"/>
+</svg>

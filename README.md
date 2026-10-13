@@ -10,7 +10,7 @@ fichiers du projet ne sont pas nécessaires sur le PC utilisé. L'application
 retente la connexion à la mémoire partagée du jeu si celle-ci n'est pas encore
 disponible. Les statistiques restent dans `Documents/ACC_pitwall_donnees/`.
 Pour une installation classique, utilise plutôt
-`dist/ACC_PitWall_Setup_v1.0.0.exe`.
+`dist/ACC_PitWall_Setup_v1.1.0.exe`.
 
 Pour le générer sous Windows, installe Python 3.10 ou plus récent puis lance
 `BUILD.bat`. Le script prépare son environnement de compilation et écrit
@@ -20,7 +20,7 @@ distribuer.
 ### Installation, versions et mises à jour
 
 Installe [Inno Setup 6](https://jrsoftware.org/isinfo.php), puis lance
-`BUILD.bat installer` pour créer `dist/ACC_PitWall_Setup_v1.0.0.exe`.
+`BUILD.bat installer` pour créer `dist/ACC_PitWall_Setup_v1.1.0.exe`.
 L'installateur s'exécute sans droits administrateur, affiche la licence et
 installe l'application dans le profil Windows de l'utilisateur. Après
 installation, ACC Pit Wall peut être lancé depuis le menu Démarrer ou le
@@ -31,7 +31,7 @@ La version de l'application est définie dans `version.py` et suit
 le chiffre du milieu pour une évolution compatible, et le premier pour une
 version incompatible. Pour publier une version stable, mettre à jour
 `APP_VERSION`, pousser le commit, puis créer et pousser le tag correspondant
-(par exemple `v1.0.0`). GitHub Actions construit l'exécutable et l'installateur,
+(par exemple `v1.1.0`). GitHub Actions construit l'exécutable et l'installateur,
 puis les joint à une Release. L'application signale une mise à jour disponible
 au démarrage lorsqu'une Release stable plus récente existe.
 
@@ -68,9 +68,16 @@ ACC_pitwall/
 ├── acc_pitwall.html            # Interface intégrée à l'exécutable
 ├── fuel_calculator.py         # Calculs de stratégie + sauvegarde JSON
 ├── acc_shared_memory.py       # Lecture mémoire partagée ACC, Windows uniquement
+├── track_locations.js         # Pays, drapeaux et noms des circuits reconnus
+├── track_maps/                # Cartes hors ligne avec l'emplacement des circuits
+├── track_flags/               # Drapeaux SVG hors ligne
 ├── acc_live_logger.py         # Ancien logger console / simulation, optionnel
 └── README.md
 ```
+
+Les cartes des circuits sont générées à partir des contours de pays Natural Earth
+(données du domaine public). Cartes et drapeaux sont embarqués et apparaissent
+lorsqu'un circuit reconnu est détecté dans ACC.
 
 ---
 

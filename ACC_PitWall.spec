@@ -16,6 +16,7 @@ datas = []
 
 required_files = [
     "acc_pitwall.html",
+    "track_locations.js",
     "app_icon.ico",
     "app_icon_512.png",
     "server.py",
@@ -28,6 +29,24 @@ for filename in required_files:
         datas.append((filepath, "."))
     else:
         print(f"ATTENTION : fichier manquant ignore : {filename}")
+
+track_locations_file = p("track_locations.js")
+if not os.path.isfile(track_locations_file):
+    raise FileNotFoundError(f"Correspondances des circuits introuvables : {track_locations_file}")
+
+track_maps_dir = p("track_maps")
+if not os.path.isdir(track_maps_dir) or not any(
+    filename.lower().endswith(".svg") for filename in os.listdir(track_maps_dir)
+):
+    raise FileNotFoundError(f"Cartes des circuits introuvables : {track_maps_dir}")
+datas.append((track_maps_dir, "track_maps"))
+
+track_flags_dir = p("track_flags")
+if not os.path.isdir(track_flags_dir) or not any(
+    filename.lower().endswith(".svg") for filename in os.listdir(track_flags_dir)
+):
+    raise FileNotFoundError(f"Drapeaux des circuits introuvables : {track_flags_dir}")
+datas.append((track_flags_dir, "track_flags"))
 
 if DEV_BUILD:
     dev_data_dir = p("ACC_pitwall_donnees")
