@@ -16,7 +16,6 @@ import asyncio
 import json
 import math
 import os
-import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -38,35 +37,7 @@ except ImportError:
     SHM_AVAILABLE = False
 
 # ── SAUVEGARDE JSON ──────────────────────────────────────────────
-DEV_MODE = os.environ.get("ACC_PITWALL_DEV") == "1"
-if DEV_MODE:
-    local_data = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
-    DATA_DIR = local_data / "ACC_PitWall_Dev" / "data"
-    RESOURCE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
-    DEV_SEED_DIR = RESOURCE_DIR / "ACC_pitwall_donnees"
-else:
-    DATA_DIR = Path.home() / "Documents" / "ACC_pitwall_donnees"
-
-
-def _seed_dev_data() -> None:
-    if not DEV_MODE:
-        return
-    if not DEV_SEED_DIR.is_dir():
-        raise FileNotFoundError(f"Dossier de données développeur introuvable : {DEV_SEED_DIR}")
-
-    seed_files = sorted(DEV_SEED_DIR.glob("*.json"))
-    if not seed_files:
-        raise FileNotFoundError(f"Aucun fichier JSON dans les données développeur : {DEV_SEED_DIR}")
-
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    copied = 0
-    for source in seed_files:
-        target = DATA_DIR / source.name
-        if not target.exists():
-            shutil.copy2(source, target)
-            copied += 1
-    if copied:
-        print(f"  Données développeur initialisées : {copied} fichiers copiés dans {DATA_DIR}")
+DATA_DIR = Path.home() / "Documents" / "ACC_pitwall_donnees"
 
 LAP_STATUS = {
     "valid": "Valide",
@@ -944,7 +915,6 @@ class ACCServer:
             self.unregister(ws)
 
     async def run(self):
-        _seed_dev_data()
         print("\n" + "=" * 55)
         print("  🏁  ACC FUEL STRATEGY — Serveur")
         print("=" * 55)

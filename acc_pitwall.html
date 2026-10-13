@@ -1863,7 +1863,6 @@ let pendingUpdate = null;
 async function checkForUpdates() {
   const params = new URLSearchParams(window.location.search);
   const currentVersion = params.get('version');
-  if (params.get('channel') === 'dev') return;
   if (!currentVersion) return;
 
   try {

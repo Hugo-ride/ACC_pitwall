@@ -13,20 +13,14 @@ REM Se placer automatiquement dans le dossier du fichier BUILD.bat
 cd /d "%~dp0"
 
 set "APP_NAME=ACC_PitWall"
-set "DEV_BUILD=0"
 set "BUILD_INSTALLER=0"
 set "INTERACTIVE=1"
 if defined ACC_PITWALL_NONINTERACTIVE set "INTERACTIVE=0"
-if /i "%~1"=="dev" (
-    set "APP_NAME=ACC_PitWall_Dev"
-    set "DEV_BUILD=1"
-    if not exist "ACC_pitwall_donnees\*.json" (
-        echo [ERREUR] Les donnees de developpement sont absentes.
-        echo Place les fichiers JSON dans ACC_pitwall_donnees puis relance BUILD.bat dev.
-        echo.
-        if "%INTERACTIVE%"=="1" pause
-        exit /b 1
-    )
+if not "%~1"=="" if /i not "%~1"=="installer" (
+    echo [ERREUR] Option inconnue : %~1
+    echo Utilise BUILD.bat ou BUILD.bat installer.
+    if "%INTERACTIVE%"=="1" pause
+    exit /b 1
 )
 if /i "%~1"=="installer" set "BUILD_INSTALLER=1"
 
@@ -74,9 +68,7 @@ if exist "build" rmdir /s /q "build"
 
 echo.
 echo [3/4] Compilation PyInstaller...
-set "ACC_PITWALL_DEV_BUILD=%DEV_BUILD%"
 "%PYTHON%" -m PyInstaller "ACC_PitWall.spec" --clean --noconfirm
-set "ACC_PITWALL_DEV_BUILD="
 if errorlevel 1 (
     echo.
     echo [ERREUR] La compilation a echoue.

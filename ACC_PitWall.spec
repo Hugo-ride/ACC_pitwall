@@ -5,8 +5,7 @@ import os
 
 block_cipher = None
 BASE_DIR = os.path.abspath(os.getcwd())
-DEV_BUILD = os.environ.get("ACC_PITWALL_DEV_BUILD") == "1"
-APP_NAME = "ACC_PitWall_Dev" if DEV_BUILD else "ACC_PitWall"
+APP_NAME = "ACC_PitWall"
 from version import APP_VERSION
 
 def p(name):
@@ -47,14 +46,6 @@ if not os.path.isdir(track_flags_dir) or not any(
 ):
     raise FileNotFoundError(f"Drapeaux des circuits introuvables : {track_flags_dir}")
 datas.append((track_flags_dir, "track_flags"))
-
-if DEV_BUILD:
-    dev_data_dir = p("ACC_pitwall_donnees")
-    if not os.path.isdir(dev_data_dir) or not any(
-        filename.lower().endswith(".json") for filename in os.listdir(dev_data_dir)
-    ):
-        raise FileNotFoundError(f"Données développeur introuvables : {dev_data_dir}")
-    datas.append((dev_data_dir, "ACC_pitwall_donnees"))
 
 hiddenimports = [
     "server",

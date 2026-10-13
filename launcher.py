@@ -196,14 +196,7 @@ def _wait_for_installer(process_handle, installer_path):
 
 
 # ── Constantes ──────────────────────────────────────────────────
-DEV_MODE    = os.environ.get("ACC_PITWALL_DEV") == "1" or (
-    getattr(sys, "frozen", False)
-    and os.path.basename(sys.executable).lower().endswith("_dev.exe")
-)
-if DEV_MODE:
-    os.environ["ACC_PITWALL_DEV"] = "1"
-
-APP_NAME    = "ACC Pit Wall Dev" if DEV_MODE else "ACC Pit Wall"
+APP_NAME    = "ACC Pit Wall"
 from version import APP_VERSION
 HTML_FILE   = resource_path("acc_pitwall.html")
 ICON_FILE   = resource_path("app_icon.ico")
@@ -231,8 +224,7 @@ def _configure_runtime_logging():
             "LOCALAPPDATA",
             os.path.join(os.path.expanduser("~"), "AppData", "Local"),
         )
-        app_data = "ACC_PitWall_Dev" if DEV_MODE else "ACC_PitWall"
-        log_directory = os.path.join(local_data, app_data)
+        log_directory = os.path.join(local_data, "ACC_PitWall")
         os.makedirs(log_directory, exist_ok=True)
         _runtime_log_file = open(
             os.path.join(log_directory, "app.log"),
@@ -304,7 +296,6 @@ if __name__ == '__main__':
 
     query = urlencode({
         "version": APP_VERSION,
-        "channel": "dev" if DEV_MODE else "stable",
         "ws_port": _server_port,
     })
     url = f"http://127.0.0.1:{ui_server.server_port}/acc_pitwall.html?{query}"
@@ -322,10 +313,9 @@ if __name__ == '__main__':
     update_api._window = window
 
     # storage_path : conserve localStorage/cookies entre les sessions
-    storage_name = "ACC_PitWall_Dev" if DEV_MODE else "ACC_PitWall"
     storage = os.path.join(
         os.environ.get("LOCALAPPDATA", os.path.join(os.path.expanduser('~'), 'AppData', 'Local')),
-        storage_name,
+        "ACC_PitWall",
     )
     os.makedirs(storage, exist_ok=True)
 
