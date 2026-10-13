@@ -92,7 +92,7 @@
   .top-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
   .top-time {
     font-family: var(--mono);
-    font-size: 13px;
+    font-size: 15px;
     color: var(--text1);
     letter-spacing: 0.06em;
   }
@@ -142,7 +142,7 @@
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.2em;
-    color: var(--text2);
+    color: var(--text1);
     text-transform: uppercase;
     margin-bottom: 10px;
     padding: 0 4px;
@@ -151,7 +151,7 @@
   .field { display: flex; flex-direction: column; gap: 4px; }
   .field label {
     font-size: 11px;
-    color: var(--text2);
+    color: var(--text1);
     font-family: var(--cond);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -373,11 +373,11 @@
   }
   .section-title {
     font-family: var(--cond);
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.18em;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--text2);
+    color: var(--text0);
   }
   .lap-table-wrap {
     background: var(--bg2);
@@ -449,11 +449,11 @@
 
   .mini-section-title {
     font-family: var(--cond);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.2em;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--text2);
+    color: var(--text1);
     margin-bottom: 10px;
   }
 
@@ -466,7 +466,7 @@
   .tele-card {
     background: var(--bg3);
     border-radius: 5px;
-    padding: 10px 12px;
+    padding: 11px 12px;
   }
   .tele-label {
     font-family: var(--cond);
@@ -644,13 +644,13 @@
     letter-spacing: .14em;
     text-transform: uppercase;
     color: var(--text0);
-    padding: 8px 8px 2px;
+    padding: 9px 10px 3px;
   }
   .stats-group-sub {
     font-family: var(--mono);
     font-size: 10px;
-    color: var(--text2);
-    padding: 0 8px 6px;
+    color: var(--text1);
+    padding: 0 10px 8px;
   }
   .stats-day-title {
     font-family: var(--cond);
@@ -660,15 +660,15 @@
     text-transform: uppercase;
     color: var(--amber);
     padding: 8px 8px 2px;
-    border-top: 1px solid var(--line);
-    margin-top: 6px;
+    border-top: 1px solid var(--line2);
+    margin-top: 4px;
   }
   .stats-day-block {
-    background: var(--bg2);
+    background: rgba(255,255,255,.018);
     border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 6px;
-    margin-bottom: 8px;
+    border-radius: 7px;
+    padding: 5px;
+    margin: 7px 0 0 8px;
   }
 
 
@@ -676,7 +676,7 @@
     background: var(--bg2);
     border: 1px solid var(--line);
     border-radius: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     overflow: hidden;
   }
   .stats-toggle {
@@ -705,8 +705,9 @@
   .stats-toggle-sub {
     font-family: var(--mono);
     font-size: 10px;
-    color: var(--text2);
-    margin-top: 3px;
+    color: var(--text1);
+    margin-top: 4px;
+    line-height: 1.45;
   }
   .stats-chevron {
     color: var(--text2);
@@ -716,15 +717,17 @@
   .stats-collapsible.closed > .stats-toggle .stats-chevron {
     transform: rotate(-90deg);
   }
-  .stats-children {
-    padding: 0 8px 8px 8px;
-  }
+  .stats-children { padding: 0 7px 7px; }
   .stats-collapsible.closed > .stats-children {
     display: none;
   }
-  .stats-collapsible.car-level { margin-left: 10px; background: var(--bg1); }
-  .stats-collapsible.day-level { margin-left: 18px; background: var(--bg2); }
-  .stats-collapsible.day-level .stats-toggle-title { color: var(--amber); }
+  .stats-collapsible.track-level { border-left: 3px solid var(--red); background: radial-gradient(ellipse at 0 0, rgba(232,64,64,.09), transparent 68%), var(--bg2); }
+  .stats-collapsible.track-level > .stats-toggle .stats-toggle-title { font-size: 16px; }
+  .stats-collapsible.car-level { margin-left: 9px; background: var(--bg1); border-color: var(--line2); }
+  .stats-collapsible.car-level > .stats-toggle .stats-toggle-title { color: #a9cfff; font-size: 13px; letter-spacing: .08em; }
+  .stats-collapsible.day-level { margin-left: 8px; background: transparent; border-color: var(--line); }
+  .stats-collapsible.day-level > .stats-toggle { padding: 9px 10px; }
+  .stats-collapsible.day-level .stats-toggle-title { color: var(--amber); font-size: 12px; }
 
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; }
@@ -787,10 +790,11 @@
   .page.hidden, #setupPage { display: none !important; }
 
   /* ── STATS PAGE ── */
-  .stats-layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; min-height: calc(100vh - 100px); }
-  .stats-panel { background: var(--bg2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-  .stats-panel-head { padding: 12px 14px; border-bottom: 1px solid var(--line); font-family: var(--cond); font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--text2); display:flex; justify-content:space-between; align-items:center; }
-  .stats-list { display:flex; flex-direction:column; gap:4px; padding: 8px; max-height: calc(100vh - 150px); overflow:auto; }
+  .stats-layout { display: grid; grid-template-columns: minmax(290px, 340px) minmax(0, 1fr); gap: 18px; min-height: calc(100vh - 100px); align-items: start; }
+  .stats-panel { background: var(--bg2); border: 1px solid var(--line2); border-radius: 10px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,.14); }
+  .stats-panel-head { padding: 15px 16px; border-bottom: 1px solid var(--line); background: linear-gradient(110deg, var(--bg3), var(--bg2)); font-family: var(--cond); font-size: 14px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text0); display:flex; justify-content:space-between; align-items:center; gap: 12px; }
+  #statsEntryCount { color: var(--amber); font: 10px var(--mono); letter-spacing: 0; white-space: nowrap; text-transform: none; }
+  .stats-list { display:flex; flex-direction:column; gap:8px; padding: 10px; max-height: min(68vh, 760px); overflow:auto; }
   .stats-search { padding: 10px 10px 0; }
   .stats-search input {
     width: 100%;
@@ -803,15 +807,28 @@
     outline: none;
   }
   .stats-search input:focus { border-color: var(--red); }
-  .stats-entry { background: var(--bg3); border: 1px solid transparent; border-radius: 6px; padding: 10px 12px; cursor:pointer; }
+  .stats-entry { position: relative; background: var(--bg2); border: 1px solid var(--line); border-radius: 7px; padding: 10px 12px; cursor:pointer; transition: border-color .15s, background .15s, transform .15s; }
   .stats-entry:hover, .stats-entry.selected { border-color: var(--line2); background: var(--bg4); }
-  .stats-entry-title { font-family: var(--cond); font-size: 14px; font-weight: 600; letter-spacing:.06em; color: var(--text0); text-transform:uppercase; }
-  .stats-entry-sub { font-family: var(--mono); font-size: 10px; color: var(--text2); margin-top:3px; }
-  .session-entry { margin-left: 14px; border-left: 2px solid var(--line2); }
-  .stats-detail { padding: 16px; display:flex; flex-direction:column; gap:14px; }
+  .stats-entry:focus-visible, .stats-toggle:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  .stats-entry-title { font-family: var(--cond); font-size: 15px; font-weight: 700; letter-spacing:.05em; color: var(--text0); }
+  .stats-entry-sub { font-family: var(--mono); font-size: 10px; color: var(--text1); margin-top:4px; line-height: 1.5; }
+  .session-entry { margin-left: 4px; border-left: 3px solid var(--red); padding-right: 38px; }
+  .stats-session-type { display: inline-block; margin-top: 7px; border-radius: 3px; padding: 2px 6px; background: rgba(74,158,255,.12); color: #83baff; font: 9px var(--cond); letter-spacing: .1em; text-transform: uppercase; }
+  .stats-merge-btn { right: 6px; }
+  .stats-detail { padding: 20px; display:flex; flex-direction:column; gap:16px; }
   .stats-title-row { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
-  .stats-title { font-family: var(--cond); font-size: 26px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
-  .stats-subtitle { font-family: var(--mono); font-size: 11px; color: var(--text2); margin-top:4px; }
+  .stats-detail-kicker { margin-bottom: 6px; color: var(--amber); font: 10px var(--cond); font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .stats-title { font-family: var(--cond); font-size: clamp(22px, 2vw, 30px); font-weight:700; letter-spacing:.04em; line-height: 1.05; color: var(--text0); text-transform: uppercase; }
+  .stats-subtitle { font-family: var(--body); font-size: 13px; color: var(--text1); margin-top:7px; }
+  .stats-detail-summary { color: var(--text2); font: 11px var(--mono); margin-top: 6px; }
+  .stats-detail-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .stats-detail-kpi { min-width: 0; padding: 13px 14px; border: 1px solid var(--line); border-radius: 7px; background: linear-gradient(145deg, var(--bg3), var(--bg2)); }
+  .stats-detail-kpi-label { color: var(--text1); font: 11px var(--cond); font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+  .stats-detail-kpi-value { margin-top: 7px; color: var(--text0); font: 500 19px var(--mono); }
+  .stats-detail-kpi.primary { border-top: 2px solid var(--green); }
+  .stats-detail-kpi.primary .stats-detail-kpi-value { color: var(--green); }
+  .stats-detail-kpi-value small { color: var(--text1); font-size: 11px; }
+  .stats-detail .lap-table-wrap { overflow-x: auto; }
   .stats-position { background: var(--bg3); border-radius: 8px; padding: 12px 16px; text-align:right; min-width: 110px; }
   .stats-position-label { font-family: var(--cond); font-size: 10px; letter-spacing:.16em; color: var(--text2); text-transform:uppercase; }
   .stats-position-value { font-family: var(--cond); font-size: 34px; line-height:1; color: var(--green); font-weight:700; }
@@ -984,6 +1001,8 @@
     .sidebar, .right-panel { border: none; }
     .telemetry-layout, .setup-layout, .stats-layout { grid-template-columns: 1fr; min-height: auto; }
     .telemetry-grid, .setup-cards { grid-template-columns: repeat(2, 1fr); }
+    .stats-list { max-height: min(58vh, 620px); }
+    .stats-detail-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
   /* ── RACE CONTROL VISUALS ── */
@@ -1182,6 +1201,7 @@
   }
   .page-heading-kicker { margin-bottom: 6px; color: var(--text2); font-size: 8px; }
   .page-heading h1 { font-size: 28px; }
+  .page-heading-description { margin-top: 5px; color: var(--text1); font-size: 13px; line-height: 1.4; }
   .heading-index {
     color: rgba(255,255,255,.1);
     font-family: var(--cond);
@@ -1266,6 +1286,12 @@
     .hero-flag { width: 28px; height: 20px; }
     .page-hero.has-track .hero-copy { max-width: 58%; }
     .page-hero.has-track h1 { font-size: 25px; }
+    .stats-detail { padding: 14px; }
+    .stats-detail-kpi { padding: 11px; }
+    .stats-detail-kpi-value { font-size: 16px; }
+    .stats-toggle { padding: 10px; }
+    .stats-children { padding: 0 5px 6px; }
+    .stats-collapsible.car-level, .stats-collapsible.day-level { margin-left: 6px; }
   }
 
 </style>
@@ -1482,6 +1508,7 @@
         <div>
           <div class="page-heading-kicker">RACE ENGINEERING / ARCHIVES</div>
           <h1>Dans le détail.</h1>
+          <p class="page-heading-description">Retrouve tes chronos par circuit, voiture et session.</p>
         </div>
         <span class="heading-index" aria-hidden="true">02</span>
       </div>
@@ -2163,6 +2190,16 @@ function setManualSessionType(type) {
 }
 function normalizeText(value, fallback='Inconnu') {
   return value && String(value).trim() ? String(value).trim() : fallback;
+}
+function displayStatsName(value) {
+  const label = normalizeText(value);
+  const lookupKey = normalizeCircuitLookupKey(label);
+  const location = Object.values(window.ACC_TRACK_LOCATIONS || {}).find(item =>
+    normalizeCircuitLookupKey(item.name) === lookupKey || item.aliases.includes(lookupKey)
+  );
+  return location
+    ? location.name
+    : label.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 function sessionDay(entry) {
   return entry.session_day || (entry.start_time ? String(entry.start_time).slice(0,10) : (entry.laps?.[0]?.timestamp ? String(entry.laps[0].timestamp).slice(0,10) : 'date_inconnue'));
@@ -3138,8 +3175,8 @@ function renderStatsList(entries) {
     const trackSessions = Object.values(cars).flatMap(days => Object.values(days).flat());
     const trackStats = aggregateSessionEntries(trackSessions);
     const trackBox = makeStatsBlock(
-      track,
-      `${Object.keys(cars).length} voiture${Object.keys(cars).length>1?'s':''} · ${trackStats.total_sessions} sessions`,
+      displayStatsName(track),
+      `${Object.keys(cars).length} voiture${Object.keys(cars).length>1?'s':''} · ${trackStats.total_sessions} session${trackStats.total_sessions === 1 ? '' : 's'}`,
       'track-level',
       false
     );
@@ -3150,8 +3187,8 @@ function renderStatsList(entries) {
       const carSessions = Object.values(days).flat();
       const carStats = aggregateSessionEntries(carSessions);
       const carBox = makeStatsBlock(
-        car,
-        `${carStats.total_sessions} sessions · ${carStats.total_laps} tours valides`,
+        displayStatsName(car),
+        `${carStats.total_sessions} session${carStats.total_sessions === 1 ? '' : 's'} · ${carStats.total_laps} tour${carStats.total_laps === 1 ? '' : 's'} valide${carStats.total_laps === 1 ? '' : 's'}`,
         'car-level',
         true
       );
@@ -3163,7 +3200,7 @@ function renderStatsList(entries) {
         const dateLabel = day === 'date_inconnue' ? 'Date inconnue' : new Date(day).toLocaleDateString('fr-FR');
         const dayBox = makeStatsBlock(
           dateLabel,
-          `${dayStats.total_sessions} sessions · ${dayStats.total_laps} tours valides`,
+          `${dayStats.total_sessions} session${dayStats.total_sessions === 1 ? '' : 's'} · ${dayStats.total_laps} tour${dayStats.total_laps === 1 ? '' : 's'} valide${dayStats.total_laps === 1 ? '' : 's'}`,
           'day-level',
           true
         );
@@ -3173,15 +3210,17 @@ function renderStatsList(entries) {
           const s = entry.stats || {};
           const div = document.createElement('div');
           div.className = 'stats-entry session-entry';
-          div.style.position = 'relative';
+          div.setAttribute('role', 'button');
+          div.tabIndex = 0;
           const prevEntry = entryIdx > 0 ? daySessions[entryIdx - 1] : null;
           const mergeBtnHtml = prevEntry
             ? `<button class="stats-merge-btn" onclick="event.stopPropagation();mergeStatsSession('${entry.car}','${entry.track}','${prevEntry.session_id}','${entry.session_id}')" title="Fusionner avec la session précédente">↑ MÊME COURSE</button>`
             : '';
           div.innerHTML = `<div class="stats-entry-title">${formatSessionDisplayName(entry)}</div>
                            <div class="stats-entry-sub">${s.total_laps ?? 0} tours valides${entry.position ? ' · P'+entry.position : ''}</div>
+                           <span class="stats-session-type">${shortSessionName(entry.session_type || 'Session')}</span>
                            ${mergeBtnHtml}`;
-          div.onclick = () => {
+          const openSession = () => {
             selectStatsEntry(div);
             renderStatsDetail({
               session_id: entry.session_id,
@@ -3196,6 +3235,14 @@ function renderStatsList(entries) {
               stats: entry.stats || {},
               position: entry.position,
             });
+          };
+          div.onclick = openSession;
+          div.onkeydown = event => {
+            if (event.target !== div) return;
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              openSession();
+            }
           };
           dayChildren.appendChild(div);
         });
@@ -3223,18 +3270,26 @@ function renderStatsDetail(data, _unused) {
   if (!el || !data) return;
   const s = data.stats || {};
   const laps = data.laps || data.sessions || [];
-  const title = `${data.track} · ${data.car}`;
+  const title = displayStatsName(data.track);
+  const car = displayStatsName(data.car);
+  const validLaps = Number(s.total_laps ?? 0);
+  const recordedLaps = laps.length;
+  const bestLap = Number(s.best_lap_sec || 0);
+  const averageLap = Number(s.avg_lap_time_sec || 0);
+  const averageFuel = Number(s.avg_fuel_per_lap || 0);
 
   el.innerHTML = `
-    <div style="margin-bottom:12px">
-      <div style="font-family:var(--cond);font-size:16px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">${title}</div>
-      <div style="font-size:11px;color:var(--text1);margin-top:3px;font-family:var(--cond);letter-spacing:.08em;text-transform:uppercase">${formatSessionDisplayName(data)} · ${formatSessionDate(data)}</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:4px">${s.total_laps ?? 0} tours valides · ${laps.length} tours enregistrés</div>
+    <div class="stats-detail-heading">
+      <div class="stats-detail-kicker">Fiche de session</div>
+      <h2 class="stats-title">${title}</h2>
+      <div class="stats-subtitle">${car} <span aria-hidden="true">·</span> ${formatSessionDisplayName(data)} <span aria-hidden="true">·</span> ${formatSessionDate(data)}</div>
+      <div class="stats-detail-summary">${validLaps} tour${validLaps === 1 ? '' : 's'} valide${validLaps === 1 ? '' : 's'} sur ${recordedLaps} enregistré${recordedLaps === 1 ? '' : 's'}${data.position ? ` · Position finale P${data.position}` : ''}</div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
-      <div class="stat-card"><div class="stat-card-label">Meilleur</div><div class="stat-card-value" style="color:var(--green)">${s.best_lap_sec?formatTime(s.best_lap_sec):'—'}</div></div>
-      <div class="stat-card"><div class="stat-card-label">Temps moy.</div><div class="stat-card-value">${s.avg_lap_time_sec?formatTime(s.avg_lap_time_sec):'—'}</div></div>
-      <div class="stat-card"><div class="stat-card-label">Conso moy.</div><div class="stat-card-value">${s.avg_fuel_per_lap?Number(s.avg_fuel_per_lap).toFixed(3)+' L':'—'}</div></div>
+    <div class="stats-detail-kpis">
+      <div class="stats-detail-kpi primary"><div class="stats-detail-kpi-label">Meilleur tour</div><div class="stats-detail-kpi-value">${bestLap > 0 ? formatTime(bestLap) : '—'}</div></div>
+      <div class="stats-detail-kpi"><div class="stats-detail-kpi-label">Temps moyen</div><div class="stats-detail-kpi-value">${averageLap > 0 ? formatTime(averageLap) : '—'}</div></div>
+      <div class="stats-detail-kpi"><div class="stats-detail-kpi-label">Carburant / tour</div><div class="stats-detail-kpi-value">${averageFuel > 0 ? `${averageFuel.toFixed(3)} <small>L</small>` : '—'}</div></div>
+      <div class="stats-detail-kpi"><div class="stats-detail-kpi-label">Tours valides</div><div class="stats-detail-kpi-value">${validLaps}</div></div>
     </div>
     <div class="lap-table-wrap">
       <table>

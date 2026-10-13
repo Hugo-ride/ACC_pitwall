@@ -13,7 +13,7 @@ Le serveur local choisit automatiquement un port disponible à chaque lancement.
 Si la connexion locale échoue, le journal de diagnostic est disponible dans
 `%LOCALAPPDATA%\ACC_PitWall\app.log`.
 Pour une installation classique, utilise plutôt
-`dist/ACC_PitWall_Setup_v1.1.7.exe`.
+`dist/ACC_PitWall_Setup_v1.2.0.exe`.
 
 Pour le générer sous Windows, installe Python 3.10 ou plus récent puis lance
 `BUILD.bat`. Le script prépare son environnement de compilation et écrit
@@ -23,7 +23,7 @@ distribuer.
 ### Installation, versions et mises à jour
 
 Installe [Inno Setup 6](https://jrsoftware.org/isinfo.php), puis lance
-`BUILD.bat installer` pour créer `dist/ACC_PitWall_Setup_v1.1.7.exe`.
+`BUILD.bat installer` pour créer `dist/ACC_PitWall_Setup_v1.2.0.exe`.
 L'installateur affiche la licence et demande les droits administrateur Windows
 pour installer l'application dans `C:\Program Files\ACC Pit Wall`. Il essaie
 de fermer ACC Pit Wall si l'application est encore ouverte pendant une mise à
@@ -37,9 +37,12 @@ signature de code reconnu par Windows.
 La version de l'application est définie dans `version.py` et suit
 [SemVer](https://semver.org/) : incrémenter le dernier chiffre pour un correctif,
 le chiffre du milieu pour une évolution compatible, et le premier pour une
-version incompatible. Pour publier une version stable, mettre à jour
-`APP_VERSION`, pousser le commit, puis créer et pousser le tag correspondant
-(par exemple `v1.1.0`). GitHub Actions construit l'exécutable et l'installateur,
+version incompatible. Chaque version doit également avoir une entrée détaillée
+dans `CHANGELOG.md`, sous le titre `## [X.Y.Z] - AAAA-MM-JJ`. GitHub Actions
+refuse de publier un tag si ses notes sont absentes, puis utilise cette entrée
+comme description de la Release. Pour publier une version stable, mettre à jour
+`APP_VERSION` et `CHANGELOG.md`, pousser le commit, puis créer et pousser le tag
+correspondant (par exemple `v1.2.0`). GitHub Actions construit l'exécutable et l'installateur,
 puis les joint à une Release. L'application signale une mise à jour stable
 disponible et peut télécharger puis lancer son installateur avec confirmation
 UAC. Les Releases GitHub doivent être publiques pour que l'application puisse
