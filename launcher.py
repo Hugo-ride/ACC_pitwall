@@ -10,6 +10,7 @@ import threading
 import socket
 import time
 import ctypes
+from pathlib import Path
 from urllib.parse import urlencode
 
 # ── Résolution des chemins (PyInstaller ou dev) ─────────────────
@@ -96,7 +97,7 @@ if __name__ == '__main__':
         "version": APP_VERSION,
         "channel": "dev" if DEV_MODE else "stable",
     })
-    url = 'file:///' + HTML_FILE.replace('\\', '/') + '?' + query
+    url = Path(HTML_FILE).as_uri() + '?' + query
 
     webview.create_window(
         title=APP_NAME,

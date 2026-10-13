@@ -3,7 +3,7 @@
 #endif
 
 #define AppName "ACC Pit Wall"
-#define AppPublisher "Hugo-ride"
+#define AppPublisher "Hugo LOYER"
 #define AppExeName "ACC_PitWall.exe"
 
 [Setup]
