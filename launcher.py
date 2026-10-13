@@ -10,8 +10,9 @@ import threading
 import socket
 import time
 import ctypes
-from pathlib import Path
-from urllib.parse import urlencode
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from re import fullmatch
+from urllib.parse import unquote, urlencode, urlsplit
 
 # ── Résolution des chemins (PyInstaller ou dev) ─────────────────
 def _base_path():
@@ -25,6 +26,27 @@ if BASE_PATH not in sys.path:
 
 def resource_path(rel):
     return os.path.join(BASE_PATH, rel)
+
+
+class _UIRequestHandler(SimpleHTTPRequestHandler):
+    def translate_path(self, path):
+        route = unquote(urlsplit(path).path).lstrip("/")
+        if not route:
+            route = "acc_pitwall.html"
+        if route in {"acc_pitwall.html", "app_icon_512.png", "track_locations.js"}:
+            return os.path.join(BASE_PATH, route)
+        if fullmatch(r"track_(?:maps|flags)/[A-Za-z0-9_-]+\.svg", route):
+            return os.path.join(BASE_PATH, route)
+        return os.path.join(BASE_PATH, "__not_found__")
+
+
+def _start_ui_server():
+    if not os.path.isfile(HTML_FILE):
+        raise FileNotFoundError(f"Interface ACC Pit Wall introuvable : {HTML_FILE}")
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _UIRequestHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server
+
 
 # ── Constantes ──────────────────────────────────────────────────
 DEV_MODE    = os.environ.get("ACC_PITWALL_DEV") == "1" or (
@@ -90,14 +112,17 @@ if __name__ == '__main__':
         ctypes.windll.user32.MessageBoxW(None, message, APP_NAME, 0x10)
         raise SystemExit(1)
 
-    # 2. Ouvrir l'interface dans une fenêtre native via pywebview
+    # 2. Servir l'interface sur localhost pour éviter les erreurs de chemins file://.
+    ui_server = _start_ui_server()
+
+    # 3. Ouvrir l'interface dans une fenêtre native via pywebview
     import webview
 
     query = urlencode({
         "version": APP_VERSION,
         "channel": "dev" if DEV_MODE else "stable",
     })
-    url = Path(HTML_FILE).as_uri() + '?' + query
+    url = f"http://127.0.0.1:{ui_server.server_port}/acc_pitwall.html?{query}"
 
     webview.create_window(
         title=APP_NAME,
