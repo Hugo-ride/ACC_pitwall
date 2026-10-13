@@ -4,13 +4,13 @@ Outil de stratégie essence pour **Assetto Corsa Competizione**, avec une interf
 
 ## Utilisation de l'exécutable
 
-Lance `dist/ACC_PitWall.exe` après avoir rejoint une session ACC. L'exécutable
+Lance `dist/ACC_PitWall.exe` avant ou après avoir rejoint une session ACC. L'exécutable
 contient l'interface, le serveur et leurs dépendances ; Python et les autres
 fichiers du projet ne sont pas nécessaires sur le PC utilisé. L'application
-retente la connexion à la mémoire partagée du jeu si celle-ci n'est pas encore
-disponible. Les statistiques restent dans `Documents/ACC_pitwall_donnees/`.
+attend que le jeu crée sa mémoire partagée, puis s'y connecte sans créer de
+mappages concurrents. Les statistiques restent dans `Documents/ACC_pitwall_donnees/`.
 Pour une installation classique, utilise plutôt
-`dist/ACC_PitWall_Setup_v1.1.3.exe`.
+`dist/ACC_PitWall_Setup_v1.1.4.exe`.
 
 Pour le générer sous Windows, installe Python 3.10 ou plus récent puis lance
 `BUILD.bat`. Le script prépare son environnement de compilation et écrit
@@ -20,7 +20,7 @@ distribuer.
 ### Installation, versions et mises à jour
 
 Installe [Inno Setup 6](https://jrsoftware.org/isinfo.php), puis lance
-`BUILD.bat installer` pour créer `dist/ACC_PitWall_Setup_v1.1.3.exe`.
+`BUILD.bat installer` pour créer `dist/ACC_PitWall_Setup_v1.1.4.exe`.
 L'installateur affiche la licence et demande les droits administrateur Windows
 pour installer l'application dans `C:\Program Files\ACC Pit Wall`. Il essaie
 de fermer ACC Pit Wall si l'application est encore ouverte pendant une mise à

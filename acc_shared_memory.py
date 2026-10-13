@@ -247,8 +247,30 @@ class ACCSharedMemoryReader:
             return False
         self.disconnect()
         mappings = []
+        mapping_handles = []
+        close_handle = None
         try:
             import mmap
+
+            kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+            open_file_mapping = kernel32.OpenFileMappingW
+            open_file_mapping.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR)
+            open_file_mapping.restype = wintypes.HANDLE
+            close_handle = kernel32.CloseHandle
+            close_handle.argtypes = (wintypes.HANDLE,)
+            close_handle.restype = wintypes.BOOL
+
+            # mmap(tagname=...) creates a missing mapping on Windows; open existing
+            # ACC mappings first so Pit Wall never reserves their names itself.
+            for name in (self.SHM_PHYSICS, self.SHM_GRAPHICS, self.SHM_STATIC):
+                handle = open_file_mapping(0x0004, False, name)  # FILE_MAP_READ
+                if not handle:
+                    error = ctypes.get_last_error()
+                    if error != 2:  # ERROR_FILE_NOT_FOUND means ACC is not ready yet.
+                        raise ctypes.WinError(error)
+                    return False
+                mapping_handles.append(handle)
+
             physics_mm = mmap.mmap(-1, ctypes.sizeof(SPageFilePhysics),
                                    self.SHM_PHYSICS, access=mmap.ACCESS_READ)
             mappings.append(physics_mm)
@@ -269,10 +291,19 @@ class ACCSharedMemoryReader:
                     mm.close()
                 except (OSError, ValueError) as close_error:
                     print(f"[!] Impossible de fermer une mémoire ACC partielle : {close_error}")
-            print(f"[!] Impossible de se connecter à ACC : {e}")
-            print("    -> Assurez-vous qu'ACC est lancé et qu'une session est active.")
+            if getattr(e, "winerror", None) != 2:
+                print(f"[!] Impossible de se connecter à ACC : {e}")
+                print("    -> Vérifiez que le jeu et sa mémoire partagée sont accessibles.")
             self._connected = False
             return False
+        finally:
+            if close_handle is not None:
+                for handle in mapping_handles:
+                    if not close_handle(handle):
+                        print(
+                            "[!] Impossible de fermer une poignée de mémoire ACC : "
+                            f"{ctypes.WinError(ctypes.get_last_error())}"
+                        )
 
     def disconnect(self):
         mappings = (self._physics_mm, self._graphics_mm, self._static_mm)
