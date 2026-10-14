@@ -1,5 +1,13 @@
 # Notes de version
 
+## [1.2.5] - 2026-10-14
+
+### Corrections
+
+- Correction de la symétrie de la carte pour que les virages droite/gauche correspondent au circuit réel.
+- Suppression des flèches de direction sur la carte.
+- Réduction visuelle du logo dans l'icône Windows, sans changer la taille des raccourcis.
+
 ## [1.2.4] - 2026-10-14
 
 ### Améliorations

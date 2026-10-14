@@ -859,7 +859,6 @@
   .track-map-car.player { fill:var(--green); }
   .track-map-car.opponent { fill:var(--red); }
   .track-map-car-label { fill:#10151b; font:700 7px var(--mono); text-anchor:middle; dominant-baseline:central; pointer-events:none; }
-  .track-map-direction { fill:none; stroke:#f3f5f7; stroke-width:2; opacity:.9; }
   .track-map-sector-1 { stroke:#37c98a; }
   .track-map-sector-2 { stroke:#f0ad3d; }
   .track-map-sector-3 { stroke:#ea5362; }
@@ -2951,7 +2950,7 @@ function renderTrackMap(d) {
     Number(headingPoint[1]) - Number(trace[0][1]),
     Number(headingPoint[0]) - Number(trace[0][0]),
   );
-  const rotation = Math.PI / 2 - heading;
+  const rotation = -Math.PI / 2 - heading;
   const cos = Math.cos(rotation), sin = Math.sin(rotation);
   const rotatePoint = (x, z) => [cos * x - sin * z, sin * x + cos * z];
   const rotatedTrace = trace.map(point => rotatePoint(Number(point[0]), Number(point[1])));
@@ -2967,7 +2966,7 @@ function renderTrackMap(d) {
   const offsetY = (height - rangeZ * scale) / 2;
   const project = (x, z) => [
     offsetX + (x - minX) * scale,
-    height - offsetY - (z - minZ) * scale,
+    offsetY + (z - minZ) * scale,
   ];
   const mapPoints = rotatedTrace.map(point => project(point[0], point[1]));
   const trackLengthAt = [0];
@@ -3036,14 +3035,6 @@ function renderTrackMap(d) {
     const [labelX, labelY] = mapPoints[midpoint];
     return `<path class="track-map-path track-map-sector-${index + 1}" d="${pathForRange(start, end)}"></path><text class="track-map-sector-label" x="${labelX.toFixed(1)}" y="${labelY.toFixed(1)}">S${index + 1}</text>`;
   }).join('');
-  const arrows = [0.13, 0.32, 0.51, 0.70, 0.89].map(progress => {
-    const index = Math.min(mapPoints.length - 2, Math.floor(progress * (mapPoints.length - 1)));
-    const [x1, y1] = mapPoints[index], [x2, y2] = mapPoints[index + 1];
-    const length = Math.hypot(x2 - x1, y2 - y1) || 1;
-    const endX = x1 + (x2 - x1) / length * 12;
-    const endY = y1 + (y2 - y1) / length * 12;
-    return `<path class="track-map-direction" d="M${x1.toFixed(1)},${y1.toFixed(1)}L${endX.toFixed(1)},${endY.toFixed(1)}" marker-end="url(#trackMapArrow)"></path>`;
-  }).join('');
   const sectorButtonLabel = trackSectorsVisible ? 'Masquer les secteurs' : 'Afficher les secteurs';
   if (sectorToggle) {
     sectorToggle.textContent = sectorButtonLabel;
@@ -3075,7 +3066,7 @@ function renderTrackMap(d) {
   const visibleTrack = trackSectorsVisible
     ? sectorPaths
     : `<path class="track-map-path" d="${fullPath}"></path>`;
-  svg.innerHTML = `<defs><marker id="trackMapArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#f3f5f7"></path></marker></defs><path class="track-map-path-outline" d="${fullPath}"></path>${visibleTrack}${arrows}${markers}`;
+  svg.innerHTML = `<path class="track-map-path-outline" d="${fullPath}"></path>${visibleTrack}${markers}`;
 }
 
 function toggleTrackSectors() {
