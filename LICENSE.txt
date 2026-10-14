@@ -1,43 +1,34 @@
-# Contrat de Licence Utilisateur Final (CLUF) — ACC Pitwall
+Contrat de Licence Utilisateur Final (CLUF) — ACC Pitwall
+Copyright © 2026 Hugo-ride. Tous droits réservés.
 
-**Copyright © 2026 Hugo-ride. Tous droits réservés.**
-
----
-
-### 1. Objet et Concession de Licence
-Le présent logiciel, **ACC Pitwall**, est la propriété exclusive de son auteur (**Hugo-ride**).
+1. Objet et Concession de Licence
+Le présent logiciel, ACC Pitwall, est la propriété exclusive de son auteur (Hugo-ride).
 
 Par la présente, l'auteur accorde au destinataire désigné une licence personnelle, non exclusive, non transférable et révocable d'installation et d'utilisation du logiciel pour un usage strictement privé.
 
----
-
-### 2. Restrictions d'Utilisation
+2. Restrictions d'Utilisation
 Sauf autorisation préalable, expresse et écrite de l'auteur, il est formellement interdit de :
 
-- **Vendre, louer, prêter, redistribuer, sous-licencier ou publier** le logiciel (ou toute partie de celui-ci) sous quelque forme que ce soit.
-- **Modifier, adapter, traduire, décompiler, désassembler** ou tenter d'extraire le code source du logiciel.
-- **Mettre le logiciel à disposition de tiers**, que ce soit sur un réseau public ou à travers un service partagé.
+Vendre, louer, prêter, redistribuer, sous-licencier ou publier le logiciel (ou toute partie de celui-ci) sous quelque forme que ce soit.
 
----
+Modifier, adapter, traduire, décompiler, désassembler ou tenter d'extraire le code source du logiciel.
 
-### 3. Données Personnelles et Stockage Local
-- **Stockage Local des Télémétries :** L'intégralité des données, statistiques, temps au tour et informations relatives aux sessions de jeu enregistrées par **ACC Pitwall** est stockée exclusivement en local sur la machine de l'utilisateur (notamment dans le dossier `Documents\ACC_pitwall_donnees`).
-- **Absence d'Envoi Extérieur :** Aucune donnée de jeu ou donnée personnelle stockée par le serveur local de l'application n'est transmise vers des serveurs distants ou des tiers.
-- **Connexions Réseau Externe :** L'application peut établir des connexions réseau ponctuelles uniquement dans le cadre de son fonctionnement technique normal (notamment pour la vérification de mises à jour via GitHub ou le chargement de ressources distantes telles que des polices et bibliothèques graphiques).
+Mettre le logiciel à disposition de tiers, que ce soit sur un réseau public ou à travers un service partagé.
 
----
+3. Données Personnelles et Stockage Local
+Stockage Local des Télémétries : L'intégralité des données, statistiques, temps au tour et informations relatives aux sessions de jeu enregistrées par ACC Pitwall est stockée exclusivement en local sur la machine de l'utilisateur (notamment dans le dossier Documents\ACC_pitwall_donnees).
 
-### 4. Propriété Intellectuelle
-La présente licence ne transfère aucun droit de propriété intellectuelle sur **ACC Pitwall**. L'auteur conserve l'intégralité des droits, titres et intérêts relatifs au logiciel, à son code, ses visuels et sa documentation associée.
+Absence d'Envoi Extérieur : Aucune donnée de jeu ou donnée personnelle stockée par le serveur local de l'application n'est transmise vers des serveurs distants ou des tiers.
 
-> *Assetto Corsa Competizione est une marque déposée de Kunos Simulazioni S.r.l. ACC Pitwall est une application indépendante et n'est pas affiliée, approuvée ni soutenue par Kunos Simulazioni ou 505 Games.*
+Connexions Réseau Externe : L'application peut établir des connexions réseau ponctuelles uniquement dans le cadre de son fonctionnement technique normal (notamment pour la vérification de mises à jour via GitHub ou le chargement de ressources distantes telles que des polices et bibliothèques graphiques).
 
----
+4. Propriété Intellectuelle
+La présente licence ne transfère aucun droit de propriété intellectuelle sur ACC Pitwall. L'auteur conserve l'intégralité des droits, titres et intérêts relatifs au logiciel, à son code, ses visuels et sa documentation associée.
 
-### 5. Absence de Garantie (« Tel Quel »)
-Le logiciel est fourni **« en l'état »** (*as is*), sans aucune garantie d'aucune sorte, expresse ou implicite, y compris, mais sans s'y limiter, les garanties de qualité marchande, d'adéquation à un usage particulier ou d'absence de dysfonctionnement. L'utilisateur assume l'intégralité des risques liés à son utilisation.
+Assetto Corsa Competizione est une marque déposée de Kunos Simulazioni S.r.l. ACC Pitwall est une application indépendante et n'est pas affiliée, approuvée ni soutenue par Kunos Simulazioni ou 505 Games.
 
----
+5. Absence de Garantie (« Tel Quel »)
+Le logiciel est fourni « en l'état » (as is), sans aucune garantie d'aucune sorte, expresse ou implicite, y compris, mais sans s'y limiter, les garanties de qualité marchande, d'adéquation à un usage particulier ou d'absence de dysfonctionnement. L'utilisateur assume l'intégralité des risques liés à son utilisation.
 
-### 6. Limitation de Responsabilité
+6. Limitation de Responsabilité
 En aucun cas l'auteur ne pourra être tenu responsable de tout dommage direct, indirect, accessoire ou consécutif (incluant, sans s'y limiter, les pertes de données ou les interruptions d'activité) découlant de l'utilisation ou de l'impossibilité d'utiliser ce logiciel.
