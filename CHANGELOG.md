@@ -1,5 +1,11 @@
 # Notes de version
 
+## [1.2.2] - 2026-10-14
+
+### Améliorations
+
+- Logo ACC Pit Wall agrandi dans l'application, l'icône Windows et l'assistant d'installation.
+
 ## [1.2.1] - 2026-10-14
 
 ### Corrections

@@ -21,6 +21,7 @@ CloseApplications=yes
 RestartApplications=no
 LicenseFile=..\LICENSE.txt
 SetupIconFile=..\app_icon.ico
+WizardSmallImageFile=wizard_small.bmp
 UninstallDisplayIcon={app}\{#AppExeName}
 OutputDir=..\dist
 OutputBaseFilename=ACC_PitWall_Setup_v{#AppVersion}
