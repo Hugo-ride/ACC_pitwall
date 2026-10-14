@@ -299,12 +299,6 @@
   .stat-card-value.red   { color: var(--red2); }
 
   /* Pit windows */
-  .pit-bar {
-    background: var(--bg3);
-    border-radius: 6px;
-    padding: 14px 16px;
-    margin-top: 4px;
-  }
   .pit-bar-label {
     font-family: var(--cond);
     font-size: 10px;
@@ -313,26 +307,10 @@
     color: var(--text2);
     margin-bottom: 10px;
   }
-  .pit-track {
-    position: relative;
-    height: 8px;
-    background: var(--bg4);
-    border-radius: 4px;
-    margin-bottom: 6px;
-  }
-  .pit-fill {
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    background: linear-gradient(90deg, var(--green2), var(--amber), var(--red));
-    border-radius: 4px;
-    transition: width 0.4s ease;
-  }
-  .pit-markers {
-    display: flex;
-    justify-content: space-between;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--text2);
+  .strategy-stop-plan {
+    background: var(--bg3);
+    border-radius: 6px;
+    padding: 12px 16px;
   }
   .pit-window-tags {
     display: flex;
@@ -822,6 +800,10 @@
   .stats-title { font-family: var(--cond); font-size: clamp(22px, 2vw, 30px); font-weight:700; letter-spacing:.04em; line-height: 1.05; color: var(--text0); text-transform: uppercase; }
   .stats-subtitle { font-family: var(--body); font-size: 13px; color: var(--text1); margin-top:7px; }
   .stats-detail-summary { color: var(--text2); font: 11px var(--mono); margin-top: 6px; }
+  .stats-race-positions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .stats-race-position { min-width:0; padding:12px 14px; border:1px solid var(--line); border-radius:7px; background:var(--bg3); }
+  .stats-race-position-label { color:var(--text1); font:11px var(--cond); font-weight:700; letter-spacing:.11em; text-transform:uppercase; }
+  .stats-race-position-value { margin-top:6px; color:var(--amber); font:500 18px var(--mono); }
   .stats-detail-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
   .stats-detail-kpi { min-width: 0; padding: 13px 14px; border: 1px solid var(--line); border-radius: 7px; background: linear-gradient(145deg, var(--bg3), var(--bg2)); }
   .stats-detail-kpi-label { color: var(--text1); font: 11px var(--cond); font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
@@ -856,6 +838,32 @@
     flex-direction: column;
     gap: 12px;
   }
+  .telemetry-map-panel { grid-column: 1 / -1; }
+  .track-map-wrap {
+    min-height: 260px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,.035), transparent 70%), var(--bg3);
+  }
+  .track-map-svg { display:block; width:100%; height:clamp(260px, 38vw, 420px); }
+  .track-map-path-outline, .track-map-path {
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    vector-effect:non-scaling-stroke;
+  }
+  .track-map-path-outline { stroke:#29323d; stroke-width:14; }
+  .track-map-path { stroke:var(--amber); stroke-width:3; opacity:.9; }
+  .track-map-car { stroke:#111820; stroke-width:2; vector-effect:non-scaling-stroke; }
+  .track-map-car.player { fill:var(--green); }
+  .track-map-car.opponent { fill:var(--red); }
+  .track-map-status { color:var(--text2); font:11px var(--mono); }
+  .track-map-legend { display:flex; align-items:center; gap:16px; flex-wrap:wrap; color:var(--text1); font:10px var(--cond); letter-spacing:.08em; text-transform:uppercase; }
+  .track-map-legend-item { display:flex; align-items:center; gap:6px; }
+  .track-map-dot { width:9px; height:9px; border-radius:50%; }
+  .track-map-dot.player { background:var(--green); }
+  .track-map-dot.opponent { background:var(--red); }
   .telemetry-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1462,16 +1470,8 @@
         </div>
       </div>
 
-      <div class="pit-bar" id="pitBarWrap" style="margin-top:12px">
-        <div class="pit-bar-label">Progression de course</div>
-        <div class="pit-track">
-          <div class="pit-fill" id="pitFill" style="width:0%"></div>
-        </div>
-        <div class="pit-markers">
-          <span>Tour 1</span>
-          <span id="pitMidLabel"></span>
-          <span id="pitEndLabel"></span>
-        </div>
+      <div class="strategy-stop-plan">
+        <div class="pit-bar-label">Fenêtres d'arrêt estimées</div>
         <div class="pit-window-tags" id="pitTags"></div>
       </div>
     </div>
@@ -1492,11 +1492,12 @@
               <th>Δ Meilleur</th>
               <th>Conso (L)</th>
               <th>Fuel restant</th>
+              <th>Position</th>
               <th>Type</th>
             </tr>
           </thead>
           <tbody id="lapTbody">
-            <tr><td colspan="6" class="empty-state">Aucun tour enregistré</td></tr>
+            <tr><td colspan="8" class="empty-state">Aucun tour enregistré</td></tr>
           </tbody>
         </table>
       </div>
@@ -1599,6 +1600,19 @@
             <div class="telemetry-kpi"><div class="label">Circuit</div><div class="value" id="tmTrack">—</div></div>
             <div class="telemetry-kpi"><div class="label">Session</div><div class="value" id="tmSession">—</div></div>
             <div class="telemetry-kpi"><div class="label">Temp. piste</div><div class="value" id="tmRoadTemp">—</div></div>
+          </div>
+        </div>
+
+        <div class="telemetry-panel telemetry-map-panel">
+          <div class="section-title">Carte du circuit</div>
+          <div class="track-map-wrap">
+            <svg id="trackMapSvg" class="track-map-svg" viewBox="0 0 800 460" role="img" aria-label="Carte du circuit et positions des voitures"></svg>
+          </div>
+          <div class="track-map-status" id="trackMapStatus">En attente des données du jeu.</div>
+          <div class="track-map-legend">
+            <span class="track-map-legend-item"><span class="track-map-dot player"></span>Votre voiture</span>
+            <span class="track-map-legend-item"><span class="track-map-dot opponent"></span>Autres voitures</span>
+            <span id="trackMapCarCount">—</span>
           </div>
         </div>
       </div>
@@ -1979,6 +1993,9 @@ function handleServerMessage(msg) {
       hasLiveData = true;
       setServerStatus('data');
       updateTrackLocation(msg.track);
+      learnedTrackTrace = Array.isArray(msg.track_trace) && msg.track_trace.length
+        ? { track: msg.track, points: msg.track_trace }
+        : null;
       // ACC vient de détecter une nouvelle voiture/circuit
       sessionLaps = [];
       bestLapTime = Infinity;
@@ -2073,6 +2090,7 @@ function handleServerMessage(msg) {
         track:        document.getElementById('trackName').value,
         sessionType:  l.session_type,
         position:     l.position,
+        fieldSize:    l.field_size,
         lapId:        l.lap_id,
         status:       l.status || 'valid',
         sessionId:    l.session_id,
@@ -2096,6 +2114,14 @@ function handleServerMessage(msg) {
       renderSavedCombos(allStatsData);
       renderStatsList(allStatsData);
       renderAutoSetups();
+      break;
+    }
+
+    case 'track_trace': {
+      learnedTrackTrace = Array.isArray(msg.points) && msg.points.length
+        ? { track: msg.track, points: msg.points }
+        : null;
+      if (latestTelemetry && latestTelemetry.track === msg.track) renderTrackMap(latestTelemetry);
       break;
     }
 
@@ -2123,6 +2149,7 @@ let allStatsData = [];
 let statsDetailData = null;
 let manualSessionTypeLocked = false;
 let latestTelemetry = null;
+let learnedTrackTrace = null;
 let userSetups = [];
 let activeSetupId = null;
 let activeSetupLabel = 'Aucun setup actif';
@@ -2492,13 +2519,6 @@ function renderStrategy(d) {
     ? '<div class="no-stop-tag">NO-STOP</div>'
     : `<div class="no-stop-tag" style="border-color:var(--amber);color:var(--amber);background:rgba(245,166,35,0.1)">${d.pit_stops} ARRÊT${d.pit_stops>1?'S':''}</div>`;
 
-  // Labels
-  document.getElementById('pitMidLabel').textContent = 'Tour ' + Math.round(d.estimated_laps / 2);
-  document.getElementById('pitEndLabel').textContent = 'Tour ' + d.estimated_laps;
-
-  // Barre d'essence : part pleine, se vide au fil des tours
-  updateFuelBar(d);
-
   const tagsEl = document.getElementById('pitTags');
   tagsEl.innerHTML = '';
   if (d.pit_windows && d.pit_windows.length) {
@@ -2511,20 +2531,6 @@ function renderStrategy(d) {
   } else {
     tagsEl.innerHTML = '<div style="font-size:11px;color:var(--green);font-family:var(--cond);letter-spacing:0.08em;">Pas d\'arrêt nécessaire</div>';
   }
-}
-
-// Barre essence : représente le carburant restant estimé au fil des tours valides
-function updateFuelBar(d) {
-  const validDone = sessionLaps.filter(isLapIncluded).length;
-  const fuelUsedEst = validDone * parseFloat(d.fuel_per_lap);
-  const fuelLeft = Math.max(0, d.fuel_to_load - fuelUsedEst);
-  const pct = (fuelLeft / d.fuel_to_load) * 100;
-  const fill = document.getElementById('pitFill');
-  fill.style.width = pct.toFixed(1) + '%';
-  fill.style.background = pct < 20 ? 'var(--red)' : pct < 40 ? 'var(--amber)' : 'linear-gradient(90deg, var(--green2), var(--amber), var(--red))';
-  // Mettre à jour le label de gauche avec le fuel restant estimé
-  const startLabel = document.querySelector('.pit-markers span:first-child');
-  if (startLabel) startLabel.textContent = fuelLeft > 0 ? fuelLeft.toFixed(1) + ' L restant' : 'Vide';
 }
 
 // ═══════════════════════════════════════════════════
@@ -2594,8 +2600,6 @@ function pushLap(lap) {
   updateTele(lap);
   updateLapChart();
   if (lap.fuelLeft > 0) updateFuelGauge(lap.fuelLeft, parseFloat(document.getElementById('tankCapacity').value)||120);
-  // Mettre à jour la barre d'essence si une stratégie est calculée
-  if (currentStrategy) updateFuelBar(currentStrategy);
 }
 
 function renderLapTable() {
@@ -2605,7 +2609,7 @@ function renderLapTable() {
   document.getElementById('lapCount').textContent = `${totalL} tour${totalL>1?'s':''} · ${validL} valide${validL>1?'s':''}`;
 
   if (!sessionLaps.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun tour enregistré</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Aucun tour enregistré</td></tr>';
     return;
   }
 
@@ -2640,7 +2644,7 @@ function renderLapTable() {
       const mergeBtn = prevKey
         ? `<button class="merge-btn" onclick="mergeSessions('${lap.sessionId}','${prevKey}')" title="Fusionner avec la session précédente">↑ MÊME COURSE</button>`
         : '';
-      sep.innerHTML = `<td colspan="7" style="position:relative">${lap.sessionName || shortSessionName(lap.sessionType)}${lap.sessionDay ? ' · ' + new Date(lap.sessionDay).toLocaleDateString('fr-FR') : ''}${mergeBtn}</td>`;
+      sep.innerHTML = `<td colspan="8" style="position:relative">${lap.sessionName || shortSessionName(lap.sessionType)}${lap.sessionDay ? ' · ' + new Date(lap.sessionDay).toLocaleDateString('fr-FR') : ''}${mergeBtn}</td>`;
       tbody.appendChild(sep);
       lastKey = key;
     }
@@ -2662,6 +2666,7 @@ function renderLapTable() {
       <td style="color:${!included?'var(--text2)':delta>1.5?'var(--red2)':delta>0.5?'var(--amber)':'var(--green)'}">${!included?'—':isBest?'—':formatDelta(delta)}</td>
       <td>${lap.fuelUsed>0?lap.fuelUsed.toFixed(2)+' L':'—'}</td>
       <td>${lap.fuelLeft>0?lap.fuelLeft.toFixed(1)+' L':'—'}</td>
+      <td>${Number.isInteger(Number(lap.position)) && Number(lap.position) > 0 ? `P${lap.position}${Number(lap.fieldSize) > 0 ? `/${lap.fieldSize}` : ''}` : '—'}</td>
       <td><span class="badge" style="background:var(--bg4);color:var(--text2)">${lap.sessionType||'Race'}</span></td>
     `;
     tbody.appendChild(tr);
@@ -2682,7 +2687,6 @@ function toggleLapStatus(lapNum) {
   renderLapTable();
   updateTele(lap);
   updateLapChart();
-  if (currentStrategy) updateFuelBar(currentStrategy);
 }
 
 function mergeSessions(sessionMerge, sessionKeep) {
@@ -2755,7 +2759,7 @@ function updateLapChart() {
 function clearSession() {
   if (!confirm('Effacer tous les tours de cette session ?')) return;
   sessionLaps = []; bestLapTime = Infinity;
-  document.getElementById('lapTbody').innerHTML = '<tr><td colspan="6" class="empty-state">Aucun tour enregistré</td></tr>';
+  document.getElementById('lapTbody').innerHTML = '<tr><td colspan="8" class="empty-state">Aucun tour enregistré</td></tr>';
   document.getElementById('lapCount').textContent = '0 tours';
   ['tLastLap','tBestLap','tAvgFuel','fuelRemaining'].forEach(id => document.getElementById(id).textContent='—');
   document.getElementById('fuelGaugeFill').style.width = '0%';
@@ -2893,6 +2897,62 @@ function renderTelemetryPage(d) {
       for (let i = 0; i < 4; i++) cells[i + 1].textContent = arr[i];
     });
   }
+  renderTrackMap(d);
+}
+
+function renderTrackMap(d) {
+  const svg = document.getElementById('trackMapSvg');
+  const status = document.getElementById('trackMapStatus');
+  const carCount = document.getElementById('trackMapCarCount');
+  if (!svg || !status || !carCount) return;
+  svg.innerHTML = '';
+
+  const trace = learnedTrackTrace && learnedTrackTrace.track === d.track
+    ? learnedTrackTrace.points.filter(point => Array.isArray(point) && point.length === 2 && point.every(value => Number.isFinite(Number(value))))
+    : [];
+  if (trace.length < 2) {
+    status.textContent = d.track_trace_learning
+      ? 'Tour complet en cours : le tracé sera créé à la fin du tour.'
+      : d.track_trace_available
+        ? 'Chargement du tracé local…'
+        : 'Effectuez un tour complet sur ce circuit pour créer sa carte localement.';
+    carCount.textContent = '—';
+    return;
+  }
+
+  const width = 800, height = 460, padding = 42;
+  const xs = trace.map(point => Number(point[0]));
+  const zs = trace.map(point => Number(point[1]));
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minZ = Math.min(...zs), maxZ = Math.max(...zs);
+  const rangeX = Math.max(maxX - minX, 1);
+  const rangeZ = Math.max(maxZ - minZ, 1);
+  const scale = Math.min((width - padding * 2) / rangeX, (height - padding * 2) / rangeZ);
+  const offsetX = (width - rangeX * scale) / 2;
+  const offsetY = (height - rangeZ * scale) / 2;
+  const project = (x, z) => [
+    offsetX + (x - minX) * scale,
+    height - offsetY - (z - minZ) * scale,
+  ];
+  const path = trace.map((point, index) => {
+    const [x, y] = project(Number(point[0]), Number(point[1]));
+    return `${index ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const cars = (Array.isArray(d.car_positions) ? d.car_positions : [])
+    .filter(car => Number.isFinite(Number(car.x)) && Number.isFinite(Number(car.z)))
+    .map(car => ({ ...car, player: Boolean(car.is_player) }));
+  const markers = cars.map(car => {
+    const [x, y] = project(Number(car.x), Number(car.z));
+    const radius = car.player ? 9 : 6;
+    const label = car.player ? 'Votre voiture' : 'Autre voiture';
+    return `<circle class="track-map-car ${car.player ? 'player' : 'opponent'}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${radius}"><title>${label}</title></circle>`;
+  }).join('');
+  const otherCars = cars.filter(car => !car.player).length;
+  status.textContent = cars.some(car => car.player)
+    ? `Tracé appris localement · Vous et ${otherCars} autre${otherCars === 1 ? '' : 's'} voiture${otherCars === 1 ? '' : 's'}`
+    : `Tracé appris localement · ${cars.length} voiture${cars.length === 1 ? '' : 's'} détectée${cars.length === 1 ? '' : 's'}`;
+  carCount.textContent = `${cars.length} voiture${cars.length === 1 ? '' : 's'} visible${cars.length === 1 ? '' : 's'}`;
+  svg.innerHTML = `<path class="track-map-path-outline" d="${path}"></path><path class="track-map-path" d="${path}"></path>${markers}`;
 }
 
 // ═══════════════════════════════════════════════════
@@ -3235,6 +3295,8 @@ function renderStatsList(entries) {
               laps: entry.laps || [],
               stats: entry.stats || {},
               position: entry.position,
+              start_position: entry.start_position,
+              field_size: entry.field_size,
             });
           };
           div.onclick = openSession;
@@ -3278,14 +3340,23 @@ function renderStatsDetail(data, _unused) {
   const bestLap = Number(s.best_lap_sec || 0);
   const averageLap = Number(s.avg_lap_time_sec || 0);
   const averageFuel = Number(s.avg_fuel_per_lap || 0);
+  const isRace = String(data.session_type || '').toLocaleLowerCase('fr') === 'race';
+  const fieldSize = Number(data.field_size) > 0 ? Number(data.field_size) : null;
+  const startPosition = Number(data.start_position) > 0 ? Number(data.start_position) : null;
+  const finalPosition = Number(data.position) > 0 ? Number(data.position) : null;
+  const positionLabel = position => position ? `P${position}${fieldSize ? ` / ${fieldSize}` : ''}` : 'Non enregistrée';
 
   el.innerHTML = `
     <div class="stats-detail-heading">
       <div class="stats-detail-kicker">Fiche de session</div>
       <h2 class="stats-title">${title}</h2>
       <div class="stats-subtitle">${car} <span aria-hidden="true">·</span> ${formatSessionDisplayName(data)} <span aria-hidden="true">·</span> ${formatSessionDate(data)}</div>
-      <div class="stats-detail-summary">${validLaps} tour${validLaps === 1 ? '' : 's'} valide${validLaps === 1 ? '' : 's'} sur ${recordedLaps} enregistré${recordedLaps === 1 ? '' : 's'}${data.position ? ` · Position finale P${data.position}` : ''}</div>
+      <div class="stats-detail-summary">${validLaps} tour${validLaps === 1 ? '' : 's'} valide${validLaps === 1 ? '' : 's'} sur ${recordedLaps} enregistré${recordedLaps === 1 ? '' : 's'}</div>
     </div>
+    ${isRace ? `<div class="stats-race-positions">
+      <div class="stats-race-position"><div class="stats-race-position-label">Position sur la grille</div><div class="stats-race-position-value">${positionLabel(startPosition)}</div></div>
+      <div class="stats-race-position"><div class="stats-race-position-label">Dernière position enregistrée</div><div class="stats-race-position-value">${positionLabel(finalPosition)}</div></div>
+    </div>` : ''}
     <div class="stats-detail-kpis">
       <div class="stats-detail-kpi primary"><div class="stats-detail-kpi-label">Meilleur tour</div><div class="stats-detail-kpi-value">${bestLap > 0 ? formatTime(bestLap) : '—'}</div></div>
       <div class="stats-detail-kpi"><div class="stats-detail-kpi-label">Temps moyen</div><div class="stats-detail-kpi-value">${averageLap > 0 ? formatTime(averageLap) : '—'}</div></div>
@@ -3294,9 +3365,9 @@ function renderStatsDetail(data, _unused) {
     </div>
     <div class="lap-table-wrap">
       <table>
-        <thead><tr><th>État</th><th>#</th><th>Temps</th><th>Conso</th><th>Fuel</th><th>Type</th></tr></thead>
+        <thead><tr><th>État</th><th>#</th><th>Temps</th><th>Conso</th><th>Fuel</th><th>Position</th><th>Type</th></tr></thead>
         <tbody id="statsLapBody">
-          ${laps.length ? laps.map((l,i)=>statsLapRow(data.car,data.track,l,i)).join('') : '<tr><td colspan="6" class="empty-state">Aucun tour</td></tr>'}
+          ${laps.length ? laps.map((l,i)=>statsLapRow(data.car,data.track,l,i,fieldSize)).join('') : '<tr><td colspan="7" class="empty-state">Aucun tour</td></tr>'}
         </tbody>
       </table>
       <div style="display:flex;align-items:center;gap:14px;padding:7px 12px;background:var(--bg3);border-top:1px solid var(--line);font-size:10px;color:var(--text2);font-family:var(--cond);letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap">
@@ -3312,7 +3383,7 @@ function renderStatsDetail(data, _unused) {
 // Cache des statuts modifiés en page stats (car/track/index → status)
 const statsStatusOverrides = {};
 
-function statsLapRow(car, track, lap, idx) {
+function statsLapRow(car, track, lap, idx, fieldSize) {
   const overrideKey = `${car}__${track}__${idx}`;
   const status = statsStatusOverrides[overrideKey] || lap.status || 'valid';
   const incl = status === 'valid' || status === 'track_limits';
@@ -3331,6 +3402,7 @@ function statsLapRow(car, track, lap, idx) {
       <td style="${!incl?'text-decoration:line-through':''}">${lap.lap_time_sec?formatTime(lap.lap_time_sec):'—'}</td>
       <td>${lap.fuel_used?Number(lap.fuel_used).toFixed(2)+' L':'—'}</td>
       <td>${lap.fuel_remaining?Number(lap.fuel_remaining).toFixed(1)+' L':'—'}</td>
+      <td>${Number(lap.position) > 0 ? `P${lap.position}${Number(lap.field_size || fieldSize) > 0 ? `/${lap.field_size || fieldSize}` : ''}` : '—'}</td>
       <td><span class="badge" style="background:var(--bg4);color:var(--text2)">${lap.session_type||'Race'}</span></td>
     </tr>`;
 }

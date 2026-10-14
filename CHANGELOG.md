@@ -1,5 +1,14 @@
 # Notes de version
 
+## [1.2.3] - 2026-10-14
+
+### Améliorations
+
+- Suppression de la barre de progression trompeuse et clarification de l'affichage des fenêtres d'arrêt estimées.
+- Ajout de la position à chaque tour, avec la position de grille et la dernière position connue dans les statistiques des nouvelles courses.
+- Ajout d'une carte télémétrique apprise localement après un tour complet, avec la position du joueur et des autres voitures.
+- Icône Windows optimisée pour rester reconnaissable dans la barre des tâches et les petites tailles.
+
 ## [1.2.2] - 2026-10-14
 
 ### Améliorations

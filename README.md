@@ -16,6 +16,5 @@ Tu peux démarrer ACC Pit Wall avant ou après avoir rejoint une session de jeu.
 
 ## Données et confidentialité
 
-Les tours, statistiques et sessions enregistrés sont conservés localement sur le PC, dans `Documents\ACC_pitwall_donnees`. Ils ne sont pas envoyés à un serveur distant. La connexion à Internet sert notamment à vérifier et télécharger les mises à jour.
-
+Les tours, statistiques, sessions et tracés de circuits appris sont conservés localement sur le PC, dans `Documents\ACC_pitwall_donnees`. Ils ne sont pas envoyés à un serveur distant. La carte d'un circuit apparaît après qu'un tour complet a permis d'enregistrer son tracé. La connexion à Internet sert notamment à vérifier et télécharger les mises à jour.
 

@@ -13,6 +13,7 @@ Puis ouvrir acc_fuel_strategy.html dans le navigateur.
 """
 
 import asyncio
+import hashlib
 import json
 import math
 import os
@@ -52,6 +53,44 @@ def get_data_file(car: str, track: str) -> Path:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     safe = lambda s: "".join(c if c.isalnum() or c in "-_ " else "_" for c in s)
     return DATA_DIR / f"{safe(car)}__{safe(track)}.json"
+
+
+def get_track_trace_file(track: str) -> Path:
+    trace_dir = DATA_DIR / "track_traces"
+    trace_dir.mkdir(parents=True, exist_ok=True)
+    track_key = hashlib.sha256(track.encode("utf-8")).hexdigest()[:20]
+    return trace_dir / f"{track_key}.json"
+
+
+def load_track_trace(track: str) -> list[list[float]] | None:
+    filepath = get_track_trace_file(track)
+    if not filepath.exists():
+        return None
+    with open(filepath, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    points = data.get("points")
+    if data.get("track") != track or not isinstance(points, list):
+        raise ValueError(f"Tracé local invalide pour le circuit '{track}'")
+    clean_points = []
+    for point in points:
+        if not isinstance(point, list) or len(point) != 2:
+            raise ValueError(f"Point de tracé local invalide pour le circuit '{track}'")
+        x, z = float(point[0]), float(point[1])
+        if not math.isfinite(x) or not math.isfinite(z):
+            raise ValueError(f"Coordonnée de tracé locale invalide pour le circuit '{track}'")
+        clean_points.append([x, z])
+    return clean_points
+
+
+def save_track_trace(track: str, points: list[list[float]]) -> list[list[float]]:
+    if len(points) < 80:
+        raise ValueError("Un tracé de circuit nécessite au moins 80 points")
+    filepath = get_track_trace_file(track)
+    temporary_file = filepath.with_suffix(".tmp")
+    with open(temporary_file, "w", encoding="utf-8") as f:
+        json.dump({"track": track, "points": points}, f, ensure_ascii=False)
+    os.replace(temporary_file, filepath)
+    return points
 
 
 def load_session_data(car: str, track: str) -> dict:
@@ -390,12 +429,18 @@ def normalize_all_sessions(data: dict) -> None:
             "session_day": lap.get("session_day") or _session_day(lap),
             "start_time": lap.get("timestamp"),
             "end_time": lap.get("timestamp"),
+            "start_position": lap.get("grid_position"),
+            "field_size": lap.get("field_size"),
             "position": lap.get("position"),
             "best_position": lap.get("position"),
             "laps": [],
         })
         groups[sid]["laps"].append(lap)
         groups[sid]["end_time"] = lap.get("timestamp") or groups[sid]["end_time"]
+        if groups[sid]["start_position"] is None and lap.get("grid_position") is not None:
+            groups[sid]["start_position"] = lap["grid_position"]
+        if groups[sid]["field_size"] is None and lap.get("field_size") is not None:
+            groups[sid]["field_size"] = lap["field_size"]
 
         pos = lap.get("position")
         if pos is not None:
@@ -435,6 +480,8 @@ def save_lap(car: str, track: str, lap: dict, force_new_session: bool = False):
     lap.setdefault("status", "valid")
     lap.setdefault("status_locked", False)
     lap.setdefault("position", None)
+    lap.setdefault("grid_position", None)
+    lap.setdefault("field_size", None)
     _normalize_lap(lap, len(data["sessions"]))
     _assign_session_metadata(data, lap, force_new_session=force_new_session)
     data["sessions"].append(lap)
@@ -541,6 +588,14 @@ class ACCServer:
         self._last_saved_lap_signature = None
         self._last_seen_lap_signature = None
         self._last_acc_status = "waiting" if self.reader else "unavailable"
+        self._last_session_type = None
+        self._race_grid_position = None
+        self._track_trace = None
+        self._track_trace_points = []
+        self._track_trace_learning = False
+        self._track_trace_start_laps = None
+        self._track_trace_last_laps = None
+        self._track_trace_last_normalized = None
 
         # Enregistrement robuste des tours :
         # ACC peut mettre à jour completed_laps avant iLastTime/fuelXLap.
@@ -554,6 +609,60 @@ class ACCServer:
         print(f"  🔌  Interface HTML connectée ({len(self.clients)} client(s))")
         await self.send(ws, {"type": "all_stats", "data": load_all_stats()})
         await self.send(ws, self._acc_status_message())
+        if self.current_track and self._track_trace is not None:
+            await self.send(ws, {
+                "type": "track_trace",
+                "track": self.current_track,
+                "points": self._track_trace,
+            })
+
+    async def _update_track_trace(self, track: str, laps: int, snap: dict) -> None:
+        previous_laps = self._track_trace_last_laps
+        normalized = float(snap.get("normalized_car_position", 0) or 0)
+        at_start_finish = math.isfinite(normalized) and (normalized <= 0.02 or normalized >= 0.98)
+        if self._track_trace is None:
+            if previous_laps is not None and laps < previous_laps:
+                self._track_trace_points = []
+                self._track_trace_last_normalized = None
+                self._track_trace_learning = False
+                self._track_trace_start_laps = None
+
+            if not self._track_trace_learning and at_start_finish:
+                self._track_trace_learning = True
+                self._track_trace_start_laps = laps
+
+            if self._track_trace_learning and laps > self._track_trace_start_laps:
+                if len(self._track_trace_points) >= 80:
+                    points = self._track_trace_points + [self._track_trace_points[0]]
+                    self._track_trace = save_track_trace(track, points)
+                    self._track_trace_points = []
+                    self._track_trace_learning = False
+                    await self.broadcast({
+                        "type": "track_trace",
+                        "track": track,
+                        "points": self._track_trace,
+                    })
+                    print(f"  MAP  Trace local sauvegarde pour {track} ({len(points)} points)")
+                else:
+                    self._track_trace_points = []
+                    self._track_trace_last_normalized = None
+                    self._track_trace_start_laps = laps
+            if self._track_trace_learning:
+                player_position = next(
+                    (car for car in snap.get("car_positions", []) if car.get("is_player")),
+                    None,
+                )
+                if player_position and math.isfinite(normalized):
+                    should_add = self._track_trace_last_normalized is None
+                    if not should_add:
+                        delta = abs(normalized - self._track_trace_last_normalized)
+                        delta = min(delta, 1.0 - delta)
+                        should_add = delta >= 0.002
+                    if should_add:
+                        self._track_trace_points.append([player_position["x"], player_position["z"]])
+                        self._track_trace_last_normalized = normalized
+
+        self._track_trace_last_laps = laps
 
     def _acc_status_message(self):
         if not self.reader:
@@ -768,12 +877,22 @@ class ACCServer:
             car = snap["car"]
             track = snap["track"]
             session_type = self.session_type_override or snap.get("session_type", "Unknown")
+            laps = int(snap.get("completed_laps", 0) or 0)
 
             if car != self.current_car or track != self.current_track:
+                track_trace = load_track_trace(track)
                 self.current_car = car
                 self.current_track = track
-                self.last_laps = snap["completed_laps"]
+                self.last_laps = laps
                 self.session_laps = []
+                self._last_session_type = None
+                self._race_grid_position = None
+                self._track_trace = track_trace
+                self._track_trace_points = []
+                self._track_trace_learning = False
+                self._track_trace_start_laps = None
+                self._track_trace_last_laps = None
+                self._track_trace_last_normalized = None
                 session_type = self.session_type_override or snap.get("session_type", "Unknown")
 
                 hist = load_session_data(car, track)
@@ -785,13 +904,34 @@ class ACCServer:
                     "tank": snap["tank_capacity"],
                     "hist_stats": hist.get("stats", {}),
                     "sessions": hist.get("sessions", []),
+                    "track_trace": self._track_trace,
                 })
                 print(f"  🚗  {car} @ {track} — {session_type}")
 
+            if session_type != self._last_session_type or (laps == 0 and self.last_laps > 0):
+                self._race_grid_position = None
+                if laps == 0 and self.last_laps > 0:
+                    self.last_laps = 0
+                    self._last_saved_lap_signature = None
+                    self._last_seen_lap_signature = None
+                    self._pending_lap_number = None
+                    self._pending_lap_started_at = None
+                self._last_session_type = session_type
+
+            if (
+                session_type == "Race"
+                and laps == 0
+                and self._race_grid_position is None
+                and 0 < int(snap.get("position", 0) or 0) <= int(snap.get("field_size", 0) or 0)
+            ):
+                self._race_grid_position = int(snap["position"])
+
+            await self._update_track_trace(track, laps, snap)
             snap["session_type"] = session_type
+            snap["track_trace_available"] = self._track_trace is not None
+            snap["track_trace_learning"] = self._track_trace_learning
             await self.broadcast({"type": "telemetry", "data": snap})
 
-            laps = int(snap.get("completed_laps", 0) or 0)
             lap_time = float(snap.get("last_lap_sec", 0) or 0)
             fuel_used = float(snap.get("fuel_per_lap", 0) or 0)
             fuel_remaining = float(snap.get("fuel_remaining", 0) or 0)
@@ -858,6 +998,8 @@ class ACCServer:
                         "air_temp": snap["air_temp"],
                         "road_temp": snap["road_temp"],
                         "position": snap.get("position"),
+                        "grid_position": self._race_grid_position,
+                        "field_size": snap.get("field_size"),
                         "status": "valid",
                         "status_locked": False,
                     }

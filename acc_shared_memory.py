@@ -10,6 +10,7 @@ Fonctionne UNIQUEMENT sous Windows quand ACC est en cours d'exécution.
 
 import struct
 import ctypes
+import math
 import sys
 import os
 from ctypes import wintypes
@@ -137,7 +138,7 @@ class SPageFileGraphic(ctypes.Structure):
         ("replayTimeMultiplier", ctypes.c_float),
         ("normalizedCarPosition",ctypes.c_float),
         ("activeCars",           ctypes.c_int),
-        ("carCoordinates",       ctypes.c_float * 60 * 3),
+        ("carCoordinates",       ctypes.c_float * 3 * 60),
         ("carID",                ctypes.c_int * 60),
         ("playerCarID",          ctypes.c_int),
         ("penaltyTime",          ctypes.c_float),
@@ -382,6 +383,28 @@ class ACCSharedMemoryReader:
 
             last_lap_ms = _clean_lap_ms(graph.iLastTime)
             best_lap_ms = _clean_lap_ms(graph.iBestTime)
+            active_car_count = max(0, min(int(graph.activeCars), 60))
+            car_positions = []
+            player_car_id = int(graph.playerCarID)
+            player_car_index = next(
+                (index for index in range(active_car_count) if int(graph.carID[index]) == player_car_id),
+                None,
+            )
+            if player_car_index is None and 0 <= player_car_id < active_car_count:
+                player_car_index = player_car_id
+            for index in range(active_car_count):
+                car_id = int(graph.carID[index])
+                x = float(graph.carCoordinates[index][0])
+                z = float(graph.carCoordinates[index][2])
+                if car_id < 0 or not math.isfinite(x) or not math.isfinite(z):
+                    continue
+                car_positions.append({
+                    "car_index": index,
+                    "car_id": car_id,
+                    "is_player": index == player_car_index,
+                    "x": round(x, 2),
+                    "z": round(z, 2),
+                })
 
             def _r(value, nd=2):
                 try:
@@ -413,6 +436,9 @@ class ACCSharedMemoryReader:
                 # Session
                 "session_time_left_sec": round(graph.sessionTimeLeft / 1000.0, 1) if graph.sessionTimeLeft > 0 else 0,
                 "position":          graph.position,
+                "field_size":        int(stat.numCars),
+                "player_car_id":     player_car_id,
+                "car_positions":     car_positions,
                 "is_in_pit":         bool(graph.isInPit or graph.isInPitLane),
                 "completed_laps_total": graph.numberOfLaps,
                 "current_sector_index": graph.currentSectorIndex,
