@@ -858,12 +858,27 @@
   .track-map-car { stroke:#111820; stroke-width:2; vector-effect:non-scaling-stroke; }
   .track-map-car.player { fill:var(--green); }
   .track-map-car.opponent { fill:var(--red); }
+  .track-map-car-label { fill:#10151b; font:700 7px var(--mono); text-anchor:middle; dominant-baseline:central; pointer-events:none; }
+  .track-map-direction { fill:none; stroke:#f3f5f7; stroke-width:2; opacity:.9; }
+  .track-map-sector-1 { stroke:#37c98a; }
+  .track-map-sector-2 { stroke:#f0ad3d; }
+  .track-map-sector-3 { stroke:#ea5362; }
+  .track-map-sector-label { fill:#f3f5f7; font:700 11px var(--cond); paint-order:stroke; stroke:#111820; stroke-width:4px; stroke-linejoin:round; text-anchor:middle; }
   .track-map-status { color:var(--text2); font:11px var(--mono); }
   .track-map-legend { display:flex; align-items:center; gap:16px; flex-wrap:wrap; color:var(--text1); font:10px var(--cond); letter-spacing:.08em; text-transform:uppercase; }
   .track-map-legend-item { display:flex; align-items:center; gap:6px; }
   .track-map-dot { width:9px; height:9px; border-radius:50%; }
   .track-map-dot.player { background:var(--green); }
   .track-map-dot.opponent { background:var(--red); }
+  .track-map-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .track-map-toggle { border:1px solid var(--line); border-radius:5px; padding:6px 10px; background:var(--bg3); color:var(--text1); font:700 10px var(--cond); letter-spacing:.08em; text-transform:uppercase; cursor:pointer; }
+  .track-map-toggle[aria-pressed="true"] { border-color:var(--amber); color:var(--amber); }
+  .track-map-order { border-top:1px solid var(--line); padding-top:8px; color:var(--text1); font:10px var(--mono); }
+  .track-map-order summary { cursor:pointer; color:var(--text1); }
+  .track-map-order-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:5px 12px; margin-top:8px; }
+  .track-map-order-item { display:flex; align-items:center; gap:7px; min-width:0; }
+  .track-map-order-dot { width:9px; height:9px; flex:0 0 9px; border-radius:50%; }
+  .track-map-order-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .telemetry-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1604,16 +1619,23 @@
         </div>
 
         <div class="telemetry-panel telemetry-map-panel">
-          <div class="section-title">Carte du circuit</div>
+          <div class="track-map-heading">
+            <div class="section-title">Carte du circuit</div>
+            <button class="track-map-toggle" id="trackMapSectorToggle" type="button" aria-pressed="false" onclick="toggleTrackSectors()">Afficher les secteurs</button>
+          </div>
           <div class="track-map-wrap">
             <svg id="trackMapSvg" class="track-map-svg" viewBox="0 0 800 460" role="img" aria-label="Carte du circuit et positions des voitures"></svg>
           </div>
           <div class="track-map-status" id="trackMapStatus">En attente des données du jeu.</div>
           <div class="track-map-legend">
             <span class="track-map-legend-item"><span class="track-map-dot player"></span>Votre voiture</span>
-            <span class="track-map-legend-item"><span class="track-map-dot opponent"></span>Autres voitures</span>
+            <span class="track-map-legend-item">Classement ACC du joueur · ordre des autres voitures estimé sur le tracé</span>
             <span id="trackMapCarCount">—</span>
           </div>
+          <details class="track-map-order">
+            <summary>Voir l'ordre des voitures sur le tracé</summary>
+            <div class="track-map-order-list" id="trackMapOrderList"></div>
+          </details>
         </div>
       </div>
     </div>
@@ -1994,7 +2016,7 @@ function handleServerMessage(msg) {
       setServerStatus('data');
       updateTrackLocation(msg.track);
       learnedTrackTrace = Array.isArray(msg.track_trace) && msg.track_trace.length
-        ? { track: msg.track, points: msg.track_trace }
+        ? { track: msg.track, points: msg.track_trace, sectorBreaks: msg.track_sector_breaks || [] }
         : null;
       // ACC vient de détecter une nouvelle voiture/circuit
       sessionLaps = [];
@@ -2119,7 +2141,7 @@ function handleServerMessage(msg) {
 
     case 'track_trace': {
       learnedTrackTrace = Array.isArray(msg.points) && msg.points.length
-        ? { track: msg.track, points: msg.points }
+        ? { track: msg.track, points: msg.points, sectorBreaks: msg.sector_breaks || [] }
         : null;
       if (latestTelemetry && latestTelemetry.track === msg.track) renderTrackMap(latestTelemetry);
       break;
@@ -2150,6 +2172,7 @@ let statsDetailData = null;
 let manualSessionTypeLocked = false;
 let latestTelemetry = null;
 let learnedTrackTrace = null;
+let trackSectorsVisible = false;
 let userSetups = [];
 let activeSetupId = null;
 let activeSetupLabel = 'Aucun setup actif';
@@ -2904,7 +2927,9 @@ function renderTrackMap(d) {
   const svg = document.getElementById('trackMapSvg');
   const status = document.getElementById('trackMapStatus');
   const carCount = document.getElementById('trackMapCarCount');
-  if (!svg || !status || !carCount) return;
+  const orderList = document.getElementById('trackMapOrderList');
+  const sectorToggle = document.getElementById('trackMapSectorToggle');
+  if (!svg || !status || !carCount || !orderList) return;
   svg.innerHTML = '';
 
   const trace = learnedTrackTrace && learnedTrackTrace.track === d.track
@@ -2917,12 +2942,22 @@ function renderTrackMap(d) {
         ? 'Chargement du tracé local…'
         : 'Effectuez un tour complet sur ce circuit pour créer sa carte localement.';
     carCount.textContent = '—';
+    orderList.innerHTML = '';
     return;
   }
 
+  const headingPoint = trace[Math.min(8, trace.length - 1)];
+  const heading = Math.atan2(
+    Number(headingPoint[1]) - Number(trace[0][1]),
+    Number(headingPoint[0]) - Number(trace[0][0]),
+  );
+  const rotation = Math.PI / 2 - heading;
+  const cos = Math.cos(rotation), sin = Math.sin(rotation);
+  const rotatePoint = (x, z) => [cos * x - sin * z, sin * x + cos * z];
+  const rotatedTrace = trace.map(point => rotatePoint(Number(point[0]), Number(point[1])));
   const width = 800, height = 460, padding = 42;
-  const xs = trace.map(point => Number(point[0]));
-  const zs = trace.map(point => Number(point[1]));
+  const xs = rotatedTrace.map(point => point[0]);
+  const zs = rotatedTrace.map(point => point[1]);
   const minX = Math.min(...xs), maxX = Math.max(...xs);
   const minZ = Math.min(...zs), maxZ = Math.max(...zs);
   const rangeX = Math.max(maxX - minX, 1);
@@ -2934,25 +2969,118 @@ function renderTrackMap(d) {
     offsetX + (x - minX) * scale,
     height - offsetY - (z - minZ) * scale,
   ];
-  const path = trace.map((point, index) => {
-    const [x, y] = project(Number(point[0]), Number(point[1]));
-    return `${index ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(' ');
+  const mapPoints = rotatedTrace.map(point => project(point[0], point[1]));
+  const trackLengthAt = [0];
+  for (let index = 1; index < mapPoints.length; index++) {
+    trackLengthAt.push(trackLengthAt[index - 1] + Math.hypot(
+      mapPoints[index][0] - mapPoints[index - 1][0],
+      mapPoints[index][1] - mapPoints[index - 1][1],
+    ));
+  }
+  const totalTrackLength = trackLengthAt[trackLengthAt.length - 1] || 1;
+  const progressAt = (x, z) => {
+    const [px, pz] = project(...rotatePoint(x, z));
+    let bestDistance = Infinity, bestProgress = 0;
+    for (let index = 0; index < mapPoints.length - 1; index++) {
+      const [ax, ay] = mapPoints[index], [bx, by] = mapPoints[index + 1];
+      const dx = bx - ax, dy = by - ay;
+      const lengthSquared = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - ay) * dy) / lengthSquared));
+      const nearestX = ax + t * dx, nearestY = ay + t * dy;
+      const distance = (px - nearestX) ** 2 + (pz - nearestY) ** 2;
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestProgress = (trackLengthAt[index] + t * Math.sqrt(lengthSquared)) / totalTrackLength;
+      }
+    }
+    return bestProgress;
+  };
   const cars = (Array.isArray(d.car_positions) ? d.car_positions : [])
     .filter(car => Number.isFinite(Number(car.x)) && Number.isFinite(Number(car.z)))
-    .map(car => ({ ...car, player: Boolean(car.is_player) }));
-  const markers = cars.map(car => {
-    const [x, y] = project(Number(car.x), Number(car.z));
-    const radius = car.player ? 9 : 6;
-    const label = car.player ? 'Votre voiture' : 'Autre voiture';
-    return `<circle class="track-map-car ${car.player ? 'player' : 'opponent'}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${radius}"><title>${label}</title></circle>`;
+    .map(car => ({
+      ...car,
+      player: Boolean(car.is_player),
+      progress: progressAt(Number(car.x), Number(car.z)),
+    }))
+    .sort((a, b) => a.progress - b.progress);
+  const markers = cars.map((car, index) => {
+    const [x, y] = project(...rotatePoint(Number(car.x), Number(car.z)));
+    const rank = index + 1;
+    const rankLabel = String(rank).padStart(2, '0');
+    const hue = ((Math.abs(Number(car.car_id) || 0) * 137.508) % 360).toFixed(1);
+    const color = car.player ? 'var(--green)' : `hsl(${hue} 78% 62%)`;
+    const title = car.player
+      ? `Vous · ordre sur le tracé ${rankLabel} · position ACC P${d.position || '—'}`
+      : `Voiture ACC ${car.car_id} · ordre estimé sur le tracé ${rankLabel}`;
+    const radius = car.player ? 10 : 9;
+    return `<g><circle class="track-map-car ${car.player ? 'player' : 'opponent'}" style="fill:${color}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${radius}"><title>${title}</title></circle><text class="track-map-car-label" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${rankLabel}</text></g>`;
   }).join('');
+  const savedBreaks = (Array.isArray(learnedTrackTrace.sectorBreaks) ? learnedTrackTrace.sectorBreaks : [])
+    .map(Number)
+    .filter(value => Number.isFinite(value) && value > 0 && value < 1)
+    .sort((a, b) => a - b);
+  const approximateSectors = savedBreaks.length !== 2;
+  const sectorBreaks = approximateSectors ? [1 / 3, 2 / 3] : savedBreaks;
+  const pathForRange = (start, end) => {
+    const first = Math.max(0, Math.floor(start * (mapPoints.length - 1)));
+    const last = Math.min(mapPoints.length - 1, Math.ceil(end * (mapPoints.length - 1)));
+    return mapPoints.slice(first, last + 1)
+      .map(([x, y], index) => `${index ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`)
+      .join(' ');
+  };
+  const fullPath = pathForRange(0, 1);
+  const sectorRanges = [0, ...sectorBreaks, 1];
+  const sectorPaths = sectorRanges.slice(0, -1).map((start, index) => {
+    const end = sectorRanges[index + 1];
+    const midpoint = Math.floor(((start + end) / 2) * (mapPoints.length - 1));
+    const [labelX, labelY] = mapPoints[midpoint];
+    return `<path class="track-map-path track-map-sector-${index + 1}" d="${pathForRange(start, end)}"></path><text class="track-map-sector-label" x="${labelX.toFixed(1)}" y="${labelY.toFixed(1)}">S${index + 1}</text>`;
+  }).join('');
+  const arrows = [0.13, 0.32, 0.51, 0.70, 0.89].map(progress => {
+    const index = Math.min(mapPoints.length - 2, Math.floor(progress * (mapPoints.length - 1)));
+    const [x1, y1] = mapPoints[index], [x2, y2] = mapPoints[index + 1];
+    const length = Math.hypot(x2 - x1, y2 - y1) || 1;
+    const endX = x1 + (x2 - x1) / length * 12;
+    const endY = y1 + (y2 - y1) / length * 12;
+    return `<path class="track-map-direction" d="M${x1.toFixed(1)},${y1.toFixed(1)}L${endX.toFixed(1)},${endY.toFixed(1)}" marker-end="url(#trackMapArrow)"></path>`;
+  }).join('');
+  const sectorButtonLabel = trackSectorsVisible ? 'Masquer les secteurs' : 'Afficher les secteurs';
+  if (sectorToggle) {
+    sectorToggle.textContent = sectorButtonLabel;
+    sectorToggle.setAttribute('aria-pressed', String(trackSectorsVisible));
+  }
   const otherCars = cars.filter(car => !car.player).length;
-  status.textContent = cars.some(car => car.player)
-    ? `Tracé appris localement · Vous et ${otherCars} autre${otherCars === 1 ? '' : 's'} voiture${otherCars === 1 ? '' : 's'}`
-    : `Tracé appris localement · ${cars.length} voiture${cars.length === 1 ? '' : 's'} détectée${cars.length === 1 ? '' : 's'}`;
+  const playerPosition = Number(d.position);
+  const fieldSize = Number(d.field_size);
+  const officialPosition = playerPosition > 0
+    ? ` · Classement ACC : P${playerPosition}${fieldSize > 0 ? ` / ${fieldSize}` : ''}`
+    : '';
+  const sectorStatus = trackSectorsVisible
+    ? ` · Secteurs ${approximateSectors ? 'approximatifs' : 'appris'}`
+    : '';
+  const learningStatus = d.track_trace_learning
+    ? (d.track_trace_available ? 'Mise à jour du tracé et des secteurs pendant ce tour · ' : 'Apprentissage du tracé pendant ce tour · ')
+    : '';
+  status.textContent = `${learningStatus}Sens de parcours orienté depuis la ligne de départ · ordre des adversaires estimé sur le tracé${officialPosition}${sectorStatus}`;
   carCount.textContent = `${cars.length} voiture${cars.length === 1 ? '' : 's'} visible${cars.length === 1 ? '' : 's'}`;
-  svg.innerHTML = `<path class="track-map-path-outline" d="${path}"></path><path class="track-map-path" d="${path}"></path>${markers}`;
+  orderList.innerHTML = cars.map((car, index) => {
+    const rank = String(index + 1).padStart(2, '0');
+    const hue = ((Math.abs(Number(car.car_id) || 0) * 137.508) % 360).toFixed(1);
+    const color = car.player ? 'var(--green)' : `hsl(${hue} 78% 62%)`;
+    const label = car.player
+      ? `Vous · P${playerPosition > 0 ? playerPosition : '—'} ACC`
+      : `Voiture ACC ${car.car_id}`;
+    return `<div class="track-map-order-item"><span class="track-map-order-dot" style="background:${color}"></span><span>${rank}</span><span class="track-map-order-text">${label}</span></div>`;
+  }).join('');
+  const visibleTrack = trackSectorsVisible
+    ? sectorPaths
+    : `<path class="track-map-path" d="${fullPath}"></path>`;
+  svg.innerHTML = `<defs><marker id="trackMapArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#f3f5f7"></path></marker></defs><path class="track-map-path-outline" d="${fullPath}"></path>${visibleTrack}${arrows}${markers}`;
+}
+
+function toggleTrackSectors() {
+  trackSectorsVisible = !trackSectorsVisible;
+  if (latestTelemetry) renderTrackMap(latestTelemetry);
 }
 
 // ═══════════════════════════════════════════════════

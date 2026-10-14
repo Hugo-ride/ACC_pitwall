@@ -62,7 +62,7 @@ def get_track_trace_file(track: str) -> Path:
     return trace_dir / f"{track_key}.json"
 
 
-def load_track_trace(track: str) -> list[list[float]] | None:
+def load_track_trace(track: str) -> dict | None:
     filepath = get_track_trace_file(track)
     if not filepath.exists():
         return None
@@ -79,18 +79,38 @@ def load_track_trace(track: str) -> list[list[float]] | None:
         if not math.isfinite(x) or not math.isfinite(z):
             raise ValueError(f"Coordonnée de tracé locale invalide pour le circuit '{track}'")
         clean_points.append([x, z])
-    return clean_points
+    sector_breaks = data.get("sector_breaks", [])
+    if not isinstance(sector_breaks, list):
+        raise ValueError(f"Limites de secteurs locales invalides pour le circuit '{track}'")
+    clean_sector_breaks = []
+    for boundary in sector_breaks:
+        value = float(boundary)
+        if not math.isfinite(value) or not 0 < value < 1:
+            raise ValueError(f"Limite de secteur locale invalide pour le circuit '{track}'")
+        clean_sector_breaks.append(value)
+    return {"points": clean_points, "sector_breaks": clean_sector_breaks}
 
 
-def save_track_trace(track: str, points: list[list[float]]) -> list[list[float]]:
+def save_track_trace(
+    track: str,
+    points: list[list[float]],
+    sector_breaks: list[float] | None = None,
+) -> dict:
     if len(points) < 80:
         raise ValueError("Un tracé de circuit nécessite au moins 80 points")
+    sector_breaks = sorted(sector_breaks or [])
+    if any(not math.isfinite(value) or not 0 < value < 1 for value in sector_breaks):
+        raise ValueError("Les limites de secteurs doivent être comprises entre 0 et 1")
     filepath = get_track_trace_file(track)
     temporary_file = filepath.with_suffix(".tmp")
     with open(temporary_file, "w", encoding="utf-8") as f:
-        json.dump({"track": track, "points": points}, f, ensure_ascii=False)
+        json.dump({
+            "track": track,
+            "points": points,
+            "sector_breaks": sector_breaks,
+        }, f, ensure_ascii=False)
     os.replace(temporary_file, filepath)
-    return points
+    return {"points": points, "sector_breaks": sector_breaks}
 
 
 def load_session_data(car: str, track: str) -> dict:
@@ -592,6 +612,7 @@ class ACCServer:
         self._race_grid_position = None
         self._track_trace = None
         self._track_trace_points = []
+        self._track_trace_sector_indices = []
         self._track_trace_learning = False
         self._track_trace_start_laps = None
         self._track_trace_last_laps = None
@@ -613,16 +634,22 @@ class ACCServer:
             await self.send(ws, {
                 "type": "track_trace",
                 "track": self.current_track,
-                "points": self._track_trace,
+                "points": self._track_trace["points"],
+                "sector_breaks": self._track_trace["sector_breaks"],
             })
 
     async def _update_track_trace(self, track: str, laps: int, snap: dict) -> None:
         previous_laps = self._track_trace_last_laps
         normalized = float(snap.get("normalized_car_position", 0) or 0)
         at_start_finish = math.isfinite(normalized) and (normalized <= 0.02 or normalized >= 0.98)
-        if self._track_trace is None:
+        needs_sector_learning = (
+            self._track_trace is None
+            or len(self._track_trace.get("sector_breaks", [])) != 2
+        )
+        if needs_sector_learning:
             if previous_laps is not None and laps < previous_laps:
                 self._track_trace_points = []
+                self._track_trace_sector_indices = []
                 self._track_trace_last_normalized = None
                 self._track_trace_learning = False
                 self._track_trace_start_laps = None
@@ -634,17 +661,35 @@ class ACCServer:
             if self._track_trace_learning and laps > self._track_trace_start_laps:
                 if len(self._track_trace_points) >= 80:
                     points = self._track_trace_points + [self._track_trace_points[0]]
-                    self._track_trace = save_track_trace(track, points)
-                    self._track_trace_points = []
-                    self._track_trace_learning = False
-                    await self.broadcast({
-                        "type": "track_trace",
-                        "track": track,
-                        "points": self._track_trace,
-                    })
-                    print(f"  MAP  Trace local sauvegarde pour {track} ({len(points)} points)")
+                    sector_breaks = []
+                    point_count = len(self._track_trace_sector_indices)
+                    previous_sector = None
+                    for index, sector in enumerate(self._track_trace_sector_indices):
+                        if sector not in (0, 1, 2):
+                            continue
+                        if previous_sector is not None and sector in (1, 2) and sector != previous_sector and point_count > 1:
+                            sector_breaks.append(index / (point_count - 1))
+                        previous_sector = sector
+                    if self._track_trace is not None and len(sector_breaks) != 2:
+                        self._track_trace_points = []
+                        self._track_trace_sector_indices = []
+                        self._track_trace_learning = False
+                        self._track_trace_start_laps = laps
+                    else:
+                        self._track_trace = save_track_trace(track, points, sector_breaks)
+                        self._track_trace_points = []
+                        self._track_trace_sector_indices = []
+                        self._track_trace_learning = False
+                        await self.broadcast({
+                            "type": "track_trace",
+                            "track": track,
+                            "points": self._track_trace["points"],
+                            "sector_breaks": self._track_trace["sector_breaks"],
+                        })
+                        print(f"  MAP  Trace local sauvegarde pour {track} ({len(points)} points)")
                 else:
                     self._track_trace_points = []
+                    self._track_trace_sector_indices = []
                     self._track_trace_last_normalized = None
                     self._track_trace_start_laps = laps
             if self._track_trace_learning:
@@ -660,6 +705,10 @@ class ACCServer:
                         should_add = delta >= 0.002
                     if should_add:
                         self._track_trace_points.append([player_position["x"], player_position["z"]])
+                        sector_index = snap.get("current_sector_index")
+                        self._track_trace_sector_indices.append(
+                            int(sector_index) if sector_index is not None else -1
+                        )
                         self._track_trace_last_normalized = normalized
 
         self._track_trace_last_laps = laps
@@ -889,6 +938,7 @@ class ACCServer:
                 self._race_grid_position = None
                 self._track_trace = track_trace
                 self._track_trace_points = []
+                self._track_trace_sector_indices = []
                 self._track_trace_learning = False
                 self._track_trace_start_laps = None
                 self._track_trace_last_laps = None
@@ -904,7 +954,8 @@ class ACCServer:
                     "tank": snap["tank_capacity"],
                     "hist_stats": hist.get("stats", {}),
                     "sessions": hist.get("sessions", []),
-                    "track_trace": self._track_trace,
+                    "track_trace": self._track_trace["points"] if self._track_trace else None,
+                    "track_sector_breaks": self._track_trace["sector_breaks"] if self._track_trace else [],
                 })
                 print(f"  🚗  {car} @ {track} — {session_type}")
 

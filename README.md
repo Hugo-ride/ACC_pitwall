@@ -14,7 +14,8 @@ L’application vérifie les mises à jour disponibles. Lorsqu’une nouvelle ve
 
 Tu peux démarrer ACC Pit Wall avant ou après avoir rejoint une session de jeu. L’application attend ACC et se connecte lorsqu’il est disponible.
 
+La carte télémétrique est orientée dans le sens de circulation et distingue les voitures par couleur et numéro. Le numéro correspond à leur ordre estimé sur le tracé, pas au classement officiel ACC ; seul le classement du joueur est fourni par le jeu. Les secteurs sont appris avec ACC lors de l'enregistrement du tracé. Les anciennes cartes utilisent des limites estimées jusqu'à ce qu'un tour complet permette de les mettre à jour.
+
 ## Données et confidentialité
 
 Les tours, statistiques, sessions et tracés de circuits appris sont conservés localement sur le PC, dans `Documents\ACC_pitwall_donnees`. Ils ne sont pas envoyés à un serveur distant. La carte d'un circuit apparaît après qu'un tour complet a permis d'enregistrer son tracé. La connexion à Internet sert notamment à vérifier et télécharger les mises à jour.
-

@@ -1,5 +1,13 @@
 # Notes de version
 
+## [1.2.4] - 2026-10-14
+
+### Améliorations
+
+- Orientation automatique de la carte dans le sens du parcours, avec des flèches de direction.
+- Repères colorés et numérotés pour distinguer les voitures, avec leur ordre estimé sur le tracé et le classement ACC du joueur.
+- Ajout d'un bouton pour afficher ou masquer les secteurs ; les limites sont apprises avec le tracé, et les anciennes cartes sont mises à jour au prochain tour complet.
+
 ## [1.2.3] - 2026-10-14
 
 ### Améliorations
